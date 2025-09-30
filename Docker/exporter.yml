@@ -1,0 +1,2 @@
+ovpntcpstatus: "/home/openvpn/logs/openvpn-tcp-status"
+ovpnudpstatus: "/home/openvpn/logs/openvpn-udp-status"
