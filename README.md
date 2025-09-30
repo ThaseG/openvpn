@@ -4,13 +4,13 @@ A production-ready OpenVPN server running in Docker with built-in monitoring and
 
 ## Features
 
-🔒 OpenVPN 2.6.15 - Built from source for latest security features
-🐳 Docker-based - Easy deployment and management
-📊 Prometheus Metrics - Built-in OpenVPN exporter for monitoring
-🔄 Dual Protocol Support - Run TCP and UDP instances simultaneously
-🛡️ Security First - Runs as non-root user with minimal privileges
-📝 Flexible Configuration - Easy to customize via mounted configs
-🔧 iptables Support - Custom firewall rules support
+- 🔒 OpenVPN 2.6.15 - Built from source for latest security features
+- 🐳 Docker-based - Easy deployment and management
+- 📊 Prometheus Metrics - Built-in OpenVPN exporter for monitoring
+- 🔄 Dual Protocol Support - Run TCP and UDP instances simultaneously
+- 🛡️ Security First - Runs as non-root user with minimal privileges
+- 📝 Flexible Configuration - Easy to customize via mounted configs
+- 🔧 iptables Support - Custom firewall rules support
 
 ## Configuration
 ### Required Files
