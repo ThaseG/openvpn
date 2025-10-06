@@ -28,11 +28,11 @@ persist-tun
 EOF
     
     echo "<cert>" >> "$CLIENT_CONF"
-    cat "/home/openvpn/config/client-${CLIENT_NAME}.crt" >> "$CLIENT_CONF"
+    cat "/home/openvpn/config/${CLIENT_NAME}.crt" >> "$CLIENT_CONF"
     echo "</cert>" >> "$CLIENT_CONF"
     
     echo "<key>" >> "$CLIENT_CONF"
-    cat "/home/openvpn/config/client-${CLIENT_NAME}.key" >> "$CLIENT_CONF"
+    cat "/home/openvpn/config/${CLIENT_NAME}.key" >> "$CLIENT_CONF"
     echo "</key>" >> "$CLIENT_CONF"
     
     echo "<ca>" >> "$CLIENT_CONF"
