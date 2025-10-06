@@ -53,7 +53,7 @@ RUN ln -sf /dev/stdout /home/openvpn/logs/openvpn.log
 # Copy supporting scripts to the container
 COPY --chown=openvpn:openvpn Testing/generate_ca_and_certs.sh /home/openvpn/generate_ca_and_certs.sh
 COPY --chown=openvpn:openvpn Testing/generate_server_config.sh /home/openvpn/generate_server_config.sh
-COPY --chown=openvpn:openvpn Testing/generate_clientr_config.sh /home/openvpn/generate_client_config.sh
+COPY --chown=openvpn:openvpn Testing/generate_client_config.sh /home/openvpn/generate_client_config.sh
 
 # Copy the reload entrypoint script to the container
 COPY --chown=openvpn:openvpn Testing/reload-generator.sh /home/openvpn/reload-generator.sh
