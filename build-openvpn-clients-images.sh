@@ -1,5 +1,5 @@
 #!/bin/bash
-CLIENTS_IMAGE_NAME='c4/ras/openvpn/openvpn-clients'
+CLIENTS_IMAGE_NAME='ThaseG/openvpn-clients'
 CI_REGISTRY_CLIENTS_IMAGE="${CI_REGISTRY}/${CLIENTS_IMAGE_NAME}"
 
 # Static version part

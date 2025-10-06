@@ -1,5 +1,5 @@
 #!/bin/bash
-SERVER_IMAGE_NAME='c4/ras/openvpn/openvpn-server'
+SERVER_IMAGE_NAME='ThaseG/openvpn'
 CI_REGISTRY_SERVER_IMAGE="${CI_REGISTRY}/${SERVER_IMAGE_NAME}"
 
 # Static version part
