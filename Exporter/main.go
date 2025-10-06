@@ -14,7 +14,7 @@ import (
 var (
 	listenAddress = kingpin.Flag("web.listen-address", "Address to listen on for web interface and telemetry.").Default(":9234").String()
 	metricsPath   = kingpin.Flag("web.telemetry-path", "Path under which to expose metrics.").Default("/metrics").String()
-	configFile    = kingpin.Flag("config.file", "Path to configuration file.").Default("../Docker/exporter.yaml").String()
+	configFile    = kingpin.Flag("config.file", "Path to configuration file.").Default("../Server/exporter.yaml").String()
 	version       = "1.0.0"
 	buildDate     = "unknown"
 )

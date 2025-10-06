@@ -1,4 +1,4 @@
-# OpenVPN Docker Server
+# OpenVPN Server
 
 A production-ready OpenVPN server running in Docker with built-in monitoring and metrics export capabilities. Tests in pipelines are testing the versions of OpenVPN, exporter, and IPtables rules.
 

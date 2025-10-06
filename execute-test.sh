@@ -65,6 +65,9 @@ docker builder build \
   -f Server/openvpn.dockerfile \
   .
 
+# Wait until generate config will end
+docker wait openvpn-generator 2>/dev/null || true
+
 # Run container out from this image
 docker run -d --name openvpn-server -v openvpn_config:/home/openvpn/config --network=openvpn --cap-add NET_ADMIN --device /dev/net/tun:/dev/net/tun openvpn:v1.0.0
 

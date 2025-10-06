@@ -67,7 +67,7 @@ go build -ldflags "-X main.version=1.0.0 -X main.buildDate=$(date -u +%Y-%m-%d)"
 
 ## Configuration
 
-Create a `../Docker/exporter.yaml` file:
+Create a `../Server/exporter.yaml` file:
 
 ```yaml
 # Path to OpenVPN status file/s
@@ -203,7 +203,7 @@ ovpn_bytes_out_total{client="user2_udp"} 3456789
 ### No metrics shown
 
 - Check that at least one OpenVPN status file exists and is readable
-- Verify the paths in `../Docker/config.yaml` are correct
+- Verify the paths in `../Server/exporter.yaml` are correct
 - Ensure OpenVPN is configured with `status` directive
 - Check logs: the exporter will warn if it can't read a status file but continue if at least one is available
 

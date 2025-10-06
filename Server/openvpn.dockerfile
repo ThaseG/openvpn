@@ -67,8 +67,8 @@ RUN ln -sf /dev/stdout /home/openvpn/logs/openvpn.log
 COPY --chown=openvpn:openvpn Exporter/ /home/openvpn/exporter
 
 # Copy configuration and script files
-COPY --chown=openvpn:openvpn Docker/reload-config.sh /home/openvpn/reload-config.sh
-COPY --chown=openvpn:openvpn Docker/exporter.yml /home/openvpn/exporter.yml
+COPY --chown=openvpn:openvpn Server/reload-config.sh /home/openvpn/reload-config.sh
+COPY --chown=openvpn:openvpn Server/exporter.yml /home/openvpn/exporter.yml
 
 # Make script executable
 RUN chmod +x /home/openvpn/reload-config.sh
