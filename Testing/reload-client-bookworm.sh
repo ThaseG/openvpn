@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Define the paths
-CLIENT_CONF="/home/openvpn/config/client.conf"
-CLIENT_SCRIPT="/home/openvpn/config/client.sh"
+CLIENT_CONF="/home/openvpn/config/client-bookworm.conf"
+CLIENT_SCRIPT="/home/openvpn/config/client-bookworm.sh"
 
 # Change ownership of all files in config folder
 sudo chown -R openvpn:openvpn /home/openvpn/config/

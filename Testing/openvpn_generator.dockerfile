@@ -1,5 +1,5 @@
 # Use the official Debian base image
-FROM ubuntu:focal
+FROM debian:12.12
 
 # Set environment variables to avoid interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
@@ -12,6 +12,7 @@ RUN apt-get update && \
     net-tools \
     tcpdump \
     ethtool \
+    openssl \
     iputils-ping \
     iproute2 \
     curl \
@@ -47,13 +48,18 @@ RUN mkdir -p /home/openvpn/logs
 WORKDIR /home/openvpn
 
 # Send logs from openvpn to stdout
-RUN ln -sf /dev/stdout /home/openvpn/logs/openvpn-client.log
+RUN ln -sf /dev/stdout /home/openvpn/logs/openvpn.log
 
-# Copy the reload script to the container
-COPY --chown=openvpn:openvpn Test/reload-client.sh /home/openvpn/reload-client.sh
+# Copy supporting scripts to the container
+COPY --chown=openvpn:openvpn Testing/generate_ca_and_certs.sh /home/openvpn/generate_ca_and_certs.sh
+COPY --chown=openvpn:openvpn Testing/generate_server_config.sh /home/openvpn/generate_server_config.sh
+COPY --chown=openvpn:openvpn Testing/generate_clientr_config.sh /home/openvpn/generate_client_config.sh
+
+# Copy the reload entrypoint script to the container
+COPY --chown=openvpn:openvpn Testing/reload-generator.sh /home/openvpn/reload-generator.sh
 
 # Ensure the script is executable
-RUN chmod +x /home/openvpn/reload-client.sh
+RUN chmod +x /home/openvpn/reload-generator.sh
 
 # Set the entrypoint to the script
-ENTRYPOINT ["/home/openvpn/reload-client.sh"]
+ENTRYPOINT ["/home/openvpn/reload-generator.sh"]

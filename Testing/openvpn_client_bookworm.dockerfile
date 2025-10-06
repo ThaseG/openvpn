@@ -50,10 +50,10 @@ WORKDIR /home/openvpn
 RUN ln -sf /dev/stdout /home/openvpn/logs/openvpn-client.log
 
 # Copy the reload script to the container
-COPY --chown=openvpn:openvpn Test/reload-client.sh /home/openvpn/reload-client.sh
+COPY --chown=openvpn:openvpn Testing/reload-client-bookworm.sh /home/openvpn/reload-client-bookworm.sh
 
 # Ensure the script is executable
 RUN chmod +x /home/openvpn/reload-client.sh
 
 # Set the entrypoint to the script
-ENTRYPOINT ["/home/openvpn/reload-client.sh"]
+ENTRYPOINT ["/home/openvpn/reload-client-bookworm.sh"]

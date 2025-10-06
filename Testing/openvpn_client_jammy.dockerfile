@@ -1,5 +1,5 @@
 # Use the official Debian base image
-FROM debian:12.12
+FROM ubuntu:jammy
 
 # Set environment variables to avoid interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
@@ -12,7 +12,6 @@ RUN apt-get update && \
     net-tools \
     tcpdump \
     ethtool \
-    openssl \
     iputils-ping \
     iproute2 \
     curl \
@@ -48,13 +47,13 @@ RUN mkdir -p /home/openvpn/logs
 WORKDIR /home/openvpn
 
 # Send logs from openvpn to stdout
-RUN ln -sf /dev/stdout /home/openvpn/logs/openvpn.log
+RUN ln -sf /dev/stdout /home/openvpn/logs/openvpn-client.log
 
 # Copy the reload script to the container
-COPY --chown=openvpn:openvpn openvpn/CA/reload-ca.sh /home/openvpn/reload-ca.sh
+COPY --chown=openvpn:openvpn Testing/reload-client-jammy.sh /home/openvpn/reload-client-jammy.sh
 
 # Ensure the script is executable
-RUN chmod +x /home/openvpn/reload-ca.sh
+RUN chmod +x /home/openvpn/reload-client-jammy.sh
 
 # Set the entrypoint to the script
-ENTRYPOINT ["/home/openvpn/reload-ca.sh"]
+ENTRYPOINT ["/home/openvpn/reload-client-jammy.sh"]
