@@ -1,18 +1,18 @@
 #!/bin/bash
 
 # Static version part
-source openvpn/versions.sh
+source versions.sh
 
-GENERATOR_IMAGE_NAME='openvpn-generator:${IMAGE_VERSION}'
-CLIENT_BOOKWORM_IMAGE_NAME='openvpn-bookworm:${IMAGE_VERSION}'
-CLIENT_BULLSEYE_IMAGE_NAME='openvpn-bullseye:${IMAGE_VERSION}'
-CLIENT_JAMMY_IMAGE_NAME='openvpn-jammy:${IMAGE_VERSION}'
-CLIENT_FOCAL_IMAGE_NAME='openvpn-focal:${IMAGE_VERSION}'
-SERVER_IMAGE_NAME='openvpn:${IMAGE_VERSION}'
+GENERATOR_IMAGE_NAME="openvpn-generator:${IMAGE_VERSION}"
+CLIENT_BOOKWORM_IMAGE_NAME="openvpn-bookworm:${IMAGE_VERSION}"
+CLIENT_BULLSEYE_IMAGE_NAME="openvpn-bullseye:${IMAGE_VERSION}"
+CLIENT_JAMMY_IMAGE_NAME="openvpn-jammy:${IMAGE_VERSION}"
+CLIENT_FOCAL_IMAGE_NAME="openvpn-focal:${IMAGE_VERSION}"
+SERVER_IMAGE_NAME="openvpn:${IMAGE_VERSION}"
 
 # Now you can use the variables
-echo "Image Version= ${IMAGE_VERSION}"
-echo "OpenVPN Version= ${OPENVPN_VERSION}"
+echo "Image Version=${IMAGE_VERSION}"
+echo "OpenVPN Version=${OPENVPN_VERSION}"
 echo "IMAGE_NAME=${SERVER_IMAGE_NAME}"
 echo ""
 
