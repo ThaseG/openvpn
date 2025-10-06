@@ -29,7 +29,7 @@ docker rmi -f "${GENERATOR_IMAGE_NAME}"
 
 # Build new generator image
 echo "Building new openvpn generator image ..."
-docker builder build \
+docker buildx build \
   --build-arg OPENVPN_VERSION="${OPENVPN_VERSION}" \
   -t ${GENERATOR_IMAGE_NAME} \
   -f Testing/openvpn_generator.dockerfile \
