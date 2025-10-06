@@ -51,4 +51,4 @@ docker volume rm openvpn_config
 docker volume create openvpn_config
 
 # Run container out from this image
-docker run -d --name openvpn-generator -v openvpn_config:/home/openvpn/config ${OPENVPN_VERSION}
+docker run -d --name openvpn-generator -v openvpn_config:/home/openvpn/config openvpn-generator:v1.0.0
