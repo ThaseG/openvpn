@@ -35,8 +35,6 @@ fi
 # Check if the common configuration file exists
 if [ ! -f "$COMMON_CONF" ]; then
     echo "ERROR: Common configuration not found at $COMMON_CONF"
-    echo "Container will sleep indefinitely. Please provide configuration files."
-    tail -f /dev/null
     exit 1
 fi
 
