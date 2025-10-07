@@ -74,8 +74,8 @@ COPY --chown=openvpn:openvpn Server/exporter.yml /home/openvpn/exporter.yml
 RUN chmod +x /home/openvpn/reload-config.sh
 
 # Build OpenVPN exporter as openvpn user
-USER openvpn
-RUN make -C /home/openvpn/exporter build
+#USER openvpn
+#RUN make -C /home/openvpn/exporter build
 
 # Use working directory
 WORKDIR /home/openvpn
