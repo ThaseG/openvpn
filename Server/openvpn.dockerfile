@@ -79,7 +79,7 @@ RUN go mod tidy
 
 # # Build OpenVPN exporter as openvpn user
 USER openvpn
-RUN build -o openvpn-exporter .
+RUN go build -o openvpn-exporter .
 
 # Use working directory
 WORKDIR /home/openvpn
