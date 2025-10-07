@@ -39,7 +39,6 @@ func (c *OpenVPNCollector) Collect(ch chan<- prometheus.Metric) {
 	var allSessions []SessionExport
 	var products []string
 	var versions []string
-	hasError := false
 
 	// Collect TCP sessions
 	if c.conf.OvpnTCPStatus != "" {
@@ -47,7 +46,6 @@ func (c *OpenVPNCollector) Collect(ch chan<- prometheus.Metric) {
 		sess, product, version, err := getOpenVPNSessions("", c.conf.OvpnTCPStatus, "tcp", c.logger)
 		if err != nil {
 			level.Error(c.logger).Log("task", "Collecting TCP", "status", "ERROR", "msg", err)
-			hasError = true
 		} else {
 			allSessions = append(allSessions, sess...)
 			if product != "" && version != "" {
@@ -63,7 +61,6 @@ func (c *OpenVPNCollector) Collect(ch chan<- prometheus.Metric) {
 		sess, product, version, err := getOpenVPNSessions("", c.conf.OvpnUDPStatus, "udp", c.logger)
 		if err != nil {
 			level.Error(c.logger).Log("task", "Collecting UDP", "status", "ERROR", "msg", err)
-			hasError = true
 		} else {
 			allSessions = append(allSessions, sess...)
 			if product != "" && version != "" {
@@ -85,10 +82,10 @@ func (c *OpenVPNCollector) Collect(ch chan<- prometheus.Metric) {
 		probeVersion = versions[0]
 	}
 	ch <- prometheus.MustNewConstMetric(ovpnProbeSuccess, prometheus.GaugeValue, 1, probeVersion)
-	
+
 	// Total sessions (combined from both TCP and UDP)
 	ch <- prometheus.MustNewConstMetric(ovpnSessTotal, prometheus.GaugeValue, float64(len(allSessions)))
-	
+
 	// Software info for each unique product/version combination
 	seen := make(map[string]bool)
 	for i := range products {

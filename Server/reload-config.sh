@@ -70,12 +70,12 @@ fi
 # Give OpenVPN a moment to start
 sleep 2
 
-# Start the exporter (likely doesn't need sudo)
-if [ -f /home/openvpn/exporter/exporter ]; then
+# Start the openvpn-exporter (likely doesn't need sudo)
+if [ -f /home/openvpn/exporter/openvpn-exporter ]; then
     echo "Starting OpenVPN Exporter..."
-    /home/openvpn/exporter/exporter --config.file=/home/openvpn/exporter.yml &
+    /home/openvpn/exporter/openvpn-exporter --config.file=/home/openvpn/exporter.yml &
     pids+=($!)
-    echo "Exporter started with PID ${pids[-1]}"
+    echo "OpenVPN exporter started with PID ${pids[-1]}"
 else
     echo "WARNING: Exporter binary not found"
 fi

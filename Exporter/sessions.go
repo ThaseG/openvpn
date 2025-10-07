@@ -95,37 +95,7 @@ func getAllOpenVPNSessions(server string, conf *Config, logger log.Logger) ([]Se
 // Get OpenVPN local sessions from a specific status file
 func getOpenVPNSessions(server string, statusFile string, protocol string, logger log.Logger) (connExport []SessionExport, product string, version string, err error) {
 	reVersion := regexp.MustCompile(`(?m)^TITLE\s+(?P<product>\S+)\s+(?P<version>\S+)\s`)
-	reClient := regexp.MustCompile(`(?m)^CLIENT_LIST\s+(?P<CN>\S+?)\t(?P<RealIP>\S+?)\t(?P<vIPv4>\S+?)\t(?P<vIPv6>\S*?)\t(?P<rB>\S+?)\t(?P<sB>\S+?)\t(?P<startTime>.+?)\t(?P<unixTime>\S+?)\t(?P<Username>.+?)\t(?P<ClientID>\S+?)\t(?P<peerID>\S+?)\t(?P<dataCiphers>\S+?)package main
-
-import (
-	"encoding/json"
-	"fmt"
-	"net/http"
-	"os"
-	"regexp"
-	"strings"
-
-	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
-)
-
-type SessionExport struct {
-	Server      string `json:"server"`
-	P1Uniqueid  string `json:"p1uniqueid"`
-	P2Uniqueid  string `json:"p2uniqueid"`
-	State       string `json:"state"`
-	RemoteHost  string `json:"remotehost"`
-	RemotePort  string `json:"remoteport"`
-	RemoteID    string `json:"remoteid"`
-	RemoteTs    string `json:"remotets"`
-	Established string `json:"established"`
-	BytesIn     string `json:"bytesin"`
-	BytesOut    string `json:"bytesout"`
-	PacketsIn   string `json:"packetsin"`
-	PacketsOut  string `json:"packetsout"`
-}
-
-)
+	reClient := regexp.MustCompile(`(?m)^CLIENT_LIST\s+(?P<CN>\S+?)\t(?P<RealIP>\S+?)\t(?P<vIPv4>\S+?)\t(?P<vIPv6>\S*?)\t(?P<rB>\S+?)\t(?P<sB>\S+?)\t(?P<startTime>.+?)\t(?P<unixTime>\S+?)\t(?P<Username>.+?)\t(?P<ClientID>\S+?)\t(?P<peerID>\S+?)\t(?P<dataCiphers>\S+?)`)
 	var cexp SessionExport
 
 	if statusFile == "" {
