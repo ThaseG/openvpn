@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e  # Exit on error
+set -e # Exit on error
 
 # Define the paths
 COMMON_CONF="/home/openvpn/config/server-common.conf"
@@ -11,19 +11,26 @@ CONFIG_DIR="/home/openvpn/config"
 # Change ownership of all files in config folder
 sudo chown -R openvpn:openvpn "$CONFIG_DIR"
 
+# Change ownership of logs directory
+sudo chown -R openvpn:openvpn "$LOG_DIR"
+
 # Backup old logfiles before starting OpenVPN
 echo "Backing up old log files..."
 if [ -f "$LOG_DIR/openvpn.log" ]; then
     cp "$LOG_DIR/openvpn.log" "$LOG_DIR/openvpn.log.backup"
 fi
-
 if [ -f "$LOG_DIR/openvpn-tcp-status" ]; then
     cp "$LOG_DIR/openvpn-tcp-status" "$LOG_DIR/openvpn-tcp-status.backup"
 fi
-
 if [ -f "$LOG_DIR/openvpn-udp-status" ]; then
     cp "$LOG_DIR/openvpn-udp-status" "$LOG_DIR/openvpn-udp-status.backup"
 fi
+
+# Pre-create status files with correct ownership and permissions
+echo "Pre-creating status files..."
+touch "$LOG_DIR/openvpn-tcp-status" "$LOG_DIR/openvpn-udp-status"
+chown openvpn:openvpn "$LOG_DIR/openvpn-tcp-status" "$LOG_DIR/openvpn-udp-status"
+chmod 644 "$LOG_DIR/openvpn-tcp-status" "$LOG_DIR/openvpn-udp-status"
 
 # Implement iptables rules if the config file exists
 if [ -f "$CONFIG_DIR/iptables.sh" ]; then
@@ -70,6 +77,10 @@ fi
 # Give OpenVPN a moment to start
 sleep 2
 
+# Fix permissions on status files after OpenVPN creates them (just in case)
+sudo chown openvpn:openvpn "$LOG_DIR"/openvpn-*-status 2>/dev/null || true
+sudo chmod 644 "$LOG_DIR"/openvpn-*-status 2>/dev/null || true
+
 # Start the openvpn-exporter (likely doesn't need sudo)
 if [ -f /home/openvpn/exporter/openvpn-exporter ]; then
     echo "Starting OpenVPN Exporter..."
@@ -96,5 +107,6 @@ shutdown() {
 trap shutdown SIGTERM SIGINT
 
 echo "All services started. Waiting for processes..."
+
 # Wait for all background processes
 wait
