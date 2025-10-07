@@ -16,20 +16,45 @@ echo "OpenVPN Version=${OPENVPN_VERSION}"
 echo "IMAGE_NAME=${SERVER_IMAGE_NAME}"
 echo ""
 
-# Stop container if it is running
-docker stop openvpn-generator
-sleep 5
-docker stop openvpn
-sleep 5
+# Stop openvpn-generator if running and wait for it to stop
+if docker ps --filter "name=openvpn-generator" --format "{{.Names}}" | grep -q "openvpn-generator"; then
+    echo "Stopping openvpn-generator container..."
+    docker stop openvpn-generator
+    echo "Waiting for openvpn-generator to stop..."
+    while docker ps --filter "name=openvpn-generator" --format "{{.Names}}" | grep -q "openvpn-generator"; do
+        sleep 1
+    done
+    echo "openvpn-generator stopped"
+else
+    echo "Container openvpn-generator is not running, skipping..."
+fi
 
-# Remove container if it exist
-docker rm openvpn-generator
-docker rm openvpn
+# Stop openvpn-server if running and wait for it to stop
+if docker ps --filter "name=openvpn-server" --format "{{.Names}}" | grep -q "^openvpn-server"; then
+    echo "Stopping openvpn-server container..."
+    docker stop openvpn-server
+    echo "Waiting for openvpn-server to stop..."
+    while docker ps --filter "name=openvpn-server" --format "{{.Names}}" | grep -q "^openvpn-server"; do
+        sleep 1
+    done
+    echo "openvpn-server stopped"
+else
+    echo "Container openvpn-server is not running, skipping..."
+fi
+
+# Remove container if they exist
+if docker ps -a --format '{{.Names}}' | grep -q '^openvpn-generator$'; then
+    docker rm openvpn-generator
+fi
+
+if docker ps -a --format '{{.Names}}' | grep -q '^openvpn-server$'; then
+    docker rm openvpn-server
+fi
 
 # Clean up old generator image
 echo "Removing older openvpn config generator image builds ..."
-docker rmi -f "${GENERATOR_IMAGE_NAME}"
-docker rmi -f "${SERVER_IMAGE_NAME}"
+docker rmi -f "${GENERATOR_IMAGE_NAME}" 2>/dev/null || true
+docker rmi -f "${SERVER_IMAGE_NAME}" 2>/dev/null || true
 
 # Build new generator image
 echo "Building new openvpn generator image ..."
@@ -43,13 +68,13 @@ docker builder build \
 docker images
 
 # Clean docker network
-docker network rm openvpn
+docker network rm openvpn 2>/dev/null || true
 
 # Create docker network
 docker network create --subnet=192.168.200.0/24 openvpn
 
-# Clear docker volume
-docker volume rm openvpn_config
+# Delete docker volume
+docker volume rm openvpn_config 2>/dev/null || true
 
 # Create docker volume
 docker volume create openvpn_config
