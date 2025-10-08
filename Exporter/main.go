@@ -45,16 +45,20 @@ func main() {
 	}
 	prometheus.MustRegister(collector)
 
+	// Create separate registries for different metrics
+	ovpnRegistry := prometheus.NewRegistry()
+	ovpnRegistry.MustRegister(collector)
+
 	// Setup HTTP handlers
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		indexHandler(w, r, logger)
 	})
 	
-	http.Handle("/metrics", promhttp.Handler())
+	// /metrics - Only OpenVPN metrics (custom collector)
+	http.Handle("/metrics", promhttp.HandlerFor(ovpnRegistry, promhttp.HandlerOpts{}))
 	
-	http.HandleFunc("/prom", func(w http.ResponseWriter, r *http.Request) {
-		promhttp.Handler().ServeHTTP(w, r)
-	})
+	// /prom - Internal Go and process metrics (default registry)
+	http.Handle("/prom", promhttp.Handler())
 	
 	http.HandleFunc("/static", func(w http.ResponseWriter, r *http.Request) {
 		staticHandler(w, r, conf, logger)
