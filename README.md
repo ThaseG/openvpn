@@ -18,8 +18,11 @@ A production-ready OpenVPN server running in Docker with built-in monitoring and
 Mount these files to /home/openvpn/config/:
 
 `server-common.conf` - Common OpenVPN settings (required)
+
 `server-tcp.conf` - TCP-specific configuration (optional)
+
 `server-udp.conf` - UDP-specific configuration (optional)
+
 `iptables.sh` - Custom firewall rules (optional)
 
 ### Configuration Structure
