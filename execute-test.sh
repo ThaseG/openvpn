@@ -85,7 +85,7 @@ docker run -d --name openvpn-generator -v openvpn_config:/home/openvpn/config op
 # Building openvpn server image
 echo "Building new openvpn server image ..."
 docker builder build \
-  --build-arg OPENVPN_VERSION="${OPENVPN_VERSION}" \
+#  --build-arg OPENVPN_VERSION="${OPENVPN_VERSION}" \
   -t ${SERVER_IMAGE_NAME} \
   -f Server/openvpn.dockerfile \
   .

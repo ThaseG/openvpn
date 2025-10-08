@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
+	"github.com/go-kit/log/level"
 )
 
 type SessionExport struct {
@@ -31,14 +31,12 @@ type SessionExport struct {
 
 // Get local OpenVPN connections
 func sessionsHandler(w http.ResponseWriter, r *http.Request, conf *Config, logger log.Logger) {
-	var reHost = regexp.MustCompile(`^((?:\d+\.\d+\.\d+\.\d+)|[\w-_]+|)`)
-	var server = r.Host
-	
-	if reHost.MatchString(r.Host) {
-		server = reHost.FindStringSubmatch(r.Host)[1]
+	serverName := conf.ServerName
+	if serverName == "" {
+		serverName = "openvpn-server"
 	}
 
-	connExport, err := getAllOpenVPNSessions(server, conf, logger)
+	connExport, err := getAllOpenVPNSessions(serverName, conf, logger)
 	if err != nil {
 		w.WriteHeader(500)
 		fmt.Fprint(w, err.Error())
