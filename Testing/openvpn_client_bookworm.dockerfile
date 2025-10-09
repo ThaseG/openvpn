@@ -53,7 +53,7 @@ RUN ln -sf /dev/stdout /home/openvpn/logs/openvpn-client.log
 COPY --chown=openvpn:openvpn Testing/reload-client-bookworm.sh /home/openvpn/reload-client-bookworm.sh
 
 # Ensure the script is executable
-RUN chmod +x /home/openvpn/reload-client.sh
+RUN chmod +x /home/openvpn/reload-client-bookworm.sh
 
 # Set the entrypoint to the script
 ENTRYPOINT ["/home/openvpn/reload-client-bookworm.sh"]
