@@ -7,7 +7,7 @@
 sudo chown -R openvpn:openvpn /home/openvpn/config/
 
 # Load centralized variables
-source versions.sh
+source /home/openvpn/versions.sh
 
 # Clean config and logs folders
 sudo rm -rf /home/openvpn/config/*
