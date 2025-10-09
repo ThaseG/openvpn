@@ -3,11 +3,11 @@
 # OpenVPN Certificate Generation Script with Curve25519 (Ed25519)
 # Compliant with: AES-256-GCM, SHA256, Curve25519/X25519
 
-# Load centralized variables
-source ../versions.sh
-
 # Change ownership of all files in config folder
 sudo chown -R openvpn:openvpn /home/openvpn/config/
+
+# Load centralized variables
+source versions.sh
 
 # Clean config and logs folders
 sudo rm -rf /home/openvpn/config/*
