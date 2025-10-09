@@ -24,6 +24,7 @@ else
     # We run with sudo, because without this openvpn won't have rights to utilize /dev/net/tun
     sudo openvpn --config "$CLIENT_CONF" &
     # We also check curl to see exporter statistics
+    sleep 30
     curl -vvv http://cicd.openvpn.com:9234/metrics
 fi
 
