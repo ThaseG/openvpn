@@ -1,6 +1,6 @@
 #!/bin/bash
 # Define the array of client configuration paths
-source ../versions.sh
+source versions.sh
 # CLIENT_CONFS=(
 #     "bookworm"
 #     "bullseye"
