@@ -42,7 +42,20 @@ else
     echo "Container openvpn-server is not running, skipping..."
 fi
 
-# Remove container if they exist
+# Stop openvpn client-bookworm if running and wait for it to stop
+if docker ps --filter "name=client-bookworm" --format "{{.Names}}" | grep -q "^client-bookworm"; then
+    echo "Stopping client-bookworm container..."
+    docker stop client-bookworm
+    echo "Waiting for client-bookwormto stop..."
+    while docker ps --filter "name=client-bookworm" --format "{{.Names}}" | grep -q "^client-bookworm"; do
+        sleep 1
+    done
+    echo "client-bookworm stopped"
+else
+    echo "Container client-bookworm is not running, skipping..."
+fi
+
+# Remove containers if they exist
 if docker ps -a --format '{{.Names}}' | grep -q '^openvpn-generator$'; then
     docker rm openvpn-generator
 fi
@@ -51,10 +64,15 @@ if docker ps -a --format '{{.Names}}' | grep -q '^openvpn-server$'; then
     docker rm openvpn-server
 fi
 
+if docker ps -a --format '{{.Names}}' | grep -q '^client-bookworm$'; then
+    docker rm client-bookworm
+fi
+
 # Clean up old generator image
 echo "Removing older openvpn config generator image builds ..."
 docker rmi -f "${GENERATOR_IMAGE_NAME}" 2>/dev/null || true
 docker rmi -f "${SERVER_IMAGE_NAME}" 2>/dev/null || true
+docker rmi -f "${CLIENT_BOOKWORM_IMAGE_NAME}" 2>/dev/null || true
 
 # Build new generator image
 echo "Building new openvpn generator image ..."
@@ -68,10 +86,12 @@ docker builder build \
 docker images
 
 # Clean docker network
-docker network rm openvpn 2>/dev/null || true
+docker network rm external 2>/dev/null || true
+docker network rm internal 2>/dev/null || true
 
 # Create docker network
-docker network create --subnet=192.168.200.0/24 openvpn
+docker network create --subnet=192.168.200.0/24 external
+docker network create --subnet=10.10.10.0/24 internal
 
 # Delete docker volume
 docker volume rm openvpn_config 2>/dev/null || true
@@ -83,8 +103,6 @@ docker volume create openvpn_config
 docker run -d --name openvpn-generator -v openvpn_config:/home/openvpn/config openvpn-generator:v1.0.0
 
 # Building openvpn server image
-
-#  --build-arg OPENVPN_VERSION="${OPENVPN_VERSION}" \
 echo "Building new openvpn server image ..."
 docker builder build \
   -t ${SERVER_IMAGE_NAME} \
@@ -94,6 +112,26 @@ docker builder build \
 # Wait until generate config will end
 docker wait openvpn-generator 2>/dev/null || true
 
-# Run container out from this image
-docker run -d --name openvpn-server -v openvpn_config:/home/openvpn/config --network=openvpn --cap-add NET_ADMIN --device /dev/net/tun:/dev/net/tun openvpn:v1.0.0
+# Building openvpn client-bookworm image
+echo "Building openvpn client-bookworm image ..."
+docker builder build \
+  -t ${CLIENT_BOOKWORM_IMAGE_NAME} \
+  -f Testing/openvpn_client_bookworm.dockerfile \
+  .
 
+# Run container out from this image
+docker run -d --name openvpn-server \
+  -v openvpn_config:/home/openvpn/config \
+  --network=external \
+  --network=internal \
+  --cap-add NET_ADMIN \
+  --device /dev/net/tun:/dev/net/tun \
+  ${SERVER_IMAGE_NAME}
+
+# Run container out from this image
+docker run -d --name client-bookworm \
+  -v openvpn_config:/home/openvpn/config \
+  --network=internal \
+  --cap-add NET_ADMIN \
+  --device /dev/net/tun:/dev/net/tun \
+  ${CLIENT_BOOKWORM_IMAGE_NAME}
