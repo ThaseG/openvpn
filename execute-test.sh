@@ -122,10 +122,8 @@ docker builder build \
 # Run container out from this image
 docker run -d --name openvpn-server \
   -v openvpn_config:/home/openvpn/config \
-  -p 192.168.200.100:443:443/tcp \
-  -p 192.168.200.100:443:443/udp \
-  -p 192.168.200.100:443:9234/tcp \
   --network=external \
+  --ip=192.168.200.100 \
   --cap-add NET_ADMIN \
   --device /dev/net/tun:/dev/net/tun \
   ${SERVER_IMAGE_NAME}
