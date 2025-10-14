@@ -21,7 +21,7 @@ for CLIENT_NAME in "${CLIENT_IMAGE_VERSIONS[@]}"; do
     cat >> "$CLIENT_CONF" << 'EOF'
 client
 dev tun
-remote cicd.openvpn.com 443 tcp
+remote 192.168.200.100 443 tcp
 resolv-retry infinite
 nobind
 persist-key
