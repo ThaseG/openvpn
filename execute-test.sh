@@ -133,7 +133,7 @@ docker network connect --ip 10.10.10.100 internal openvpn-server
 # Run container out from this image
 docker run -d --name client-bookworm \
   -v openvpn_config:/home/openvpn/config \
-  --network=internal \
+  --network=external \
   --cap-add NET_ADMIN \
   --device /dev/net/tun:/dev/net/tun \
   ${CLIENT_BOOKWORM_IMAGE_NAME}
