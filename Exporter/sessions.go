@@ -53,7 +53,7 @@ func sessionsHandler(w http.ResponseWriter, r *http.Request, conf *Config, logge
 	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write(jsondata)
 	if err != nil {
-		level.Error(logger).Log("task", "HTTP", "write", err.Error())
+		_ = level.Error(logger).Log("task", "HTTP", "write", err.Error())
 	}
 }
 
@@ -65,10 +65,10 @@ func getAllOpenVPNSessions(server string, conf *Config, logger log.Logger) ([]Se
 	if conf.OvpnTCPStatus != "" {
 		sessions, _, _, err := getOpenVPNSessions(server, conf.OvpnTCPStatus, "tcp", logger)
 		if err != nil {
-			level.Warn(logger).Log("task", "read TCP status", "err", err.Error())
+			_ = level.Warn(logger).Log("task", "read TCP status", "err", err.Error())
 		} else {
 			allSessions = append(allSessions, sessions...)
-			level.Debug(logger).Log("task", "TCP sessions", "count", len(sessions))
+			_ = level.Debug(logger).Log("task", "TCP sessions", "count", len(sessions))
 		}
 	}
 
@@ -76,10 +76,10 @@ func getAllOpenVPNSessions(server string, conf *Config, logger log.Logger) ([]Se
 	if conf.OvpnUDPStatus != "" {
 		sessions, _, _, err := getOpenVPNSessions(server, conf.OvpnUDPStatus, "udp", logger)
 		if err != nil {
-			level.Warn(logger).Log("task", "read UDP status", "err", err.Error())
+			_ = level.Warn(logger).Log("task", "read UDP status", "err", err.Error())
 		} else {
 			allSessions = append(allSessions, sessions...)
-			level.Debug(logger).Log("task", "UDP sessions", "count", len(sessions))
+			_ = level.Debug(logger).Log("task", "UDP sessions", "count", len(sessions))
 		}
 	}
 
@@ -107,7 +107,7 @@ func getOpenVPNSessions(server string, statusFile string, protocol string, logge
 
 	ovpnstats, err := os.ReadFile(statusFile)
 	if err != nil {
-		level.Error(logger).Log("task", "open status file", "file", statusFile, "err", err.Error())
+		_ = level.Error(logger).Log("task", "open status file", "file", statusFile, "err", err.Error())
 		return nil, "", "", err
 	}
 
