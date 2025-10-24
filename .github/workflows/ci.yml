@@ -24,12 +24,6 @@ jobs:
           echo "changed=true" >> $GITHUB_OUTPUT
         fi
     
-    - name: Install build dependencies
-      if: steps.changes.outputs.changed == 'true'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y gcc
-    
     - uses: actions/setup-go@v4
       if: steps.changes.outputs.changed == 'true'
       with:
