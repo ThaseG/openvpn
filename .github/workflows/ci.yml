@@ -24,24 +24,41 @@ jobs:
           echo "changed=true" >> $GITHUB_OUTPUT
         fi
     
+    - name: Install build dependencies
+      if: steps.changes.outputs.changed == 'true'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc
+    
     - uses: actions/setup-go@v4
       if: steps.changes.outputs.changed == 'true'
       with:
         go-version: '1.19'
-        cache: true
-        cache-dependency-path: Exporter/go.sum
     
-    - name: Download Go dependencies
+    - name: Setup Go environment and dependencies
       if: steps.changes.outputs.changed == 'true'
       working-directory: Exporter
-      run: go mod download
+      run: |
+        # Clear any cached/corrupted modules
+        rm -rf ~/go/pkg/mod/gopkg.in/yaml.v2* || true
+        
+        # Download and verify dependencies (just like Docker does)
+        go mod download
+        go mod verify
+        
+        # Test that it builds
+        go build -v
+    
+    - name: Install golangci-lint
+      if: steps.changes.outputs.changed == 'true'
+      run: |
+        curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.64.8
+        echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
     
     - name: Run golangci-lint
       if: steps.changes.outputs.changed == 'true'
-      uses: golangci/golangci-lint-action@v3
-      with:
-        version: latest
-        working-directory: Exporter
+      working-directory: Exporter
+      run: golangci-lint run --timeout=5m
 
   e2e-test:
     runs-on: self-hosted
