@@ -15,7 +15,7 @@ jobs:
       with:
         fetch-depth: 0
     
-    - name: Check for changes in Exporer
+    - name: Check for changes in Exporter
       id: changes
       run: |
         if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q '^Exporter/'; then
@@ -28,6 +28,13 @@ jobs:
       if: steps.changes.outputs.changed == 'true'
       with:
         go-version: '1.19'
+        cache: true
+        cache-dependency-path: Exporter/go.sum
+    
+    - name: Download Go dependencies
+      if: steps.changes.outputs.changed == 'true'
+      working-directory: Exporter
+      run: go mod download
     
     - name: Run golangci-lint
       if: steps.changes.outputs.changed == 'true'
@@ -37,8 +44,9 @@ jobs:
         working-directory: Exporter
 
   e2e-test:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
     - uses: actions/checkout@v4
+    
     - name: Run tests
       run: ./execute-test.sh
