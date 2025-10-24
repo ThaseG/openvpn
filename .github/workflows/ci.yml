@@ -21,7 +21,7 @@ jobs:
         if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q '^Exporter/'; then
           echo "changed=true" >> $GITHUB_OUTPUT
         else
-          echo "changed=true" >> $GITHUB_OUTPUT
+          echo "changed=false" >> $GITHUB_OUTPUT
         fi
     
     - uses: actions/setup-go@v4
@@ -29,17 +29,14 @@ jobs:
       with:
         go-version: '1.19'
     
-    - name: Clean Go module cache
-      if: steps.changes.outputs.changed == 'true'
-      run: |
-        chmod -R u+w ~/go/pkg/mod || true
-        go clean -modcache || true
-    
     - name: Setup Go environment and dependencies
       if: steps.changes.outputs.changed == 'true'
       working-directory: Exporter
       run: |
-        # Download all dependencies fresh
+        # Generate go.sum if missing or incomplete
+        go mod tidy
+        
+        # Download all dependencies
         go mod download
         go mod verify
         
