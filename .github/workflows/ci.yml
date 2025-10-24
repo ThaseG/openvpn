@@ -29,14 +29,17 @@ jobs:
       with:
         go-version: '1.19'
     
+    - name: Clean Go module cache
+      if: steps.changes.outputs.changed == 'true'
+      run: |
+        chmod -R u+w ~/go/pkg/mod || true
+        go clean -modcache || true
+    
     - name: Setup Go environment and dependencies
       if: steps.changes.outputs.changed == 'true'
       working-directory: Exporter
       run: |
-        # Clear any cached/corrupted modules
-        rm -rf ~/go/pkg/mod/gopkg.in/yaml.v2* || true
-        
-        # Download and verify dependencies (just like Docker does)
+        # Download all dependencies fresh
         go mod download
         go mod verify
         
