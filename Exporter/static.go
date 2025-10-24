@@ -244,7 +244,7 @@ func staticHandler(w http.ResponseWriter, r *http.Request, conf *Config, logger 
 </html>`
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Write([]byte(html))
+	_, _ = w.Write([]byte(html))
 }
 
 func formatBytes(bytesStr string) string {

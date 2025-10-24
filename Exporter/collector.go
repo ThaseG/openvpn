@@ -12,7 +12,7 @@ import (
 type OpenVPNCollector struct {
 	conf   *Config
 	logger log.Logger
-	req    *http.Request
+	// Removed unused req field
 }
 
 var (
@@ -34,7 +34,7 @@ func (c *OpenVPNCollector) Describe(ch chan<- *prometheus.Desc) {
 
 // Implement prometheus.Collector Collect method
 func (c *OpenVPNCollector) Collect(ch chan<- prometheus.Metric) {
-	level.Debug(c.logger).Log("task", "Collecting OpenVPN metrics")
+	_ = level.Debug(c.logger).Log("task", "Collecting OpenVPN metrics")
 
 	var allSessions []SessionExport
 	var products []string
@@ -42,10 +42,10 @@ func (c *OpenVPNCollector) Collect(ch chan<- prometheus.Metric) {
 
 	// Collect TCP sessions
 	if c.conf.OvpnTCPStatus != "" {
-		level.Debug(c.logger).Log("task", "Collecting TCP", "target", c.conf.OvpnTCPStatus)
+		_ = level.Debug(c.logger).Log("task", "Collecting TCP", "target", c.conf.OvpnTCPStatus)
 		sess, product, version, err := getOpenVPNSessions("", c.conf.OvpnTCPStatus, "tcp", c.logger)
 		if err != nil {
-			level.Error(c.logger).Log("task", "Collecting TCP", "status", "ERROR", "msg", err)
+			_ = level.Error(c.logger).Log("task", "Collecting TCP", "status", "ERROR", "msg", err)
 		} else {
 			allSessions = append(allSessions, sess...)
 			if product != "" && version != "" {
@@ -57,10 +57,10 @@ func (c *OpenVPNCollector) Collect(ch chan<- prometheus.Metric) {
 
 	// Collect UDP sessions
 	if c.conf.OvpnUDPStatus != "" {
-		level.Debug(c.logger).Log("task", "Collecting UDP", "target", c.conf.OvpnUDPStatus)
+		_ = level.Debug(c.logger).Log("task", "Collecting UDP", "target", c.conf.OvpnUDPStatus)
 		sess, product, version, err := getOpenVPNSessions("", c.conf.OvpnUDPStatus, "udp", c.logger)
 		if err != nil {
-			level.Error(c.logger).Log("task", "Collecting UDP", "status", "ERROR", "msg", err)
+			_ = level.Error(c.logger).Log("task", "Collecting UDP", "status", "ERROR", "msg", err)
 		} else {
 			allSessions = append(allSessions, sess...)
 			if product != "" && version != "" {
@@ -107,5 +107,5 @@ func (c *OpenVPNCollector) Collect(ch chan<- prometheus.Metric) {
 		}
 	}
 
-	level.Debug(c.logger).Log("task", "Collection complete", "total_sessions", len(allSessions))
+	_ = level.Debug(c.logger).Log("task", "Collection complete", "total_sessions", len(allSessions))
 }
