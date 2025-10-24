@@ -18,7 +18,7 @@ jobs:
     - name: Check for changes in Exporer
       id: changes
       run: |
-        if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q '^Exporer/'; then
+        if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q '^Exporter/'; then
           echo "changed=true" >> $GITHUB_OUTPUT
         else
           echo "changed=true" >> $GITHUB_OUTPUT
