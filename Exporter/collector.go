@@ -1,7 +1,6 @@
 package main
 
 import (
-	"net/http"
 	"strconv"
 
 	"github.com/go-kit/kit/log"
@@ -12,7 +11,6 @@ import (
 type OpenVPNCollector struct {
 	conf   *Config
 	logger log.Logger
-	// Removed unused req field
 }
 
 var (
