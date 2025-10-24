@@ -10,7 +10,7 @@ import (
 )
 
 func staticHandler(w http.ResponseWriter, r *http.Request, conf *Config, logger log.Logger) {
-	level.Debug(logger).Log("task", "Generating static HTML page")
+	_ = level.Debug(logger).Log("task", "Generating static HTML page")
 
 	sessions, err := getAllOpenVPNSessions("", conf, logger)
 	if err != nil {
