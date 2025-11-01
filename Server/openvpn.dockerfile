@@ -1,9 +1,11 @@
-# Use the official Debian base image
-FROM debian:12-slim
+# ============================================
+# Stage 1: Build OpenVPN
+# ============================================
+FROM debian:12-slim AS openvpn-builder
+
 ENV DEBIAN_FRONTEND=noninteractive
 ENV OPENVPN_VERSION=v2.6.15
 
-# Install build dependencies and tools
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
@@ -21,36 +23,11 @@ RUN apt-get update && \
     libnl-genl-3-dev \
     pkg-config \
     ca-certificates \
-    net-tools \
-    tcpdump \
-    ethtool \
-    iputils-ping \
-    iproute2 \
-    curl \
-    vim \
-    nano \
-    sudo \
-    procps \
     git \
-    make \
-    wget \
-    iptables \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Install Go 1.23 manually (removed 'golang' from apt and added this)
-RUN wget -q https://go.dev/dl/go1.23.5.linux-amd64.tar.gz && \
-    tar -C /usr/local -xzf go1.23.5.linux-amd64.tar.gz && \
-    rm go1.23.5.linux-amd64.tar.gz
-
-ENV PATH="/usr/local/go/bin:${PATH}"
-ENV GOPATH="/home/openvpn/go"
-ENV PATH="${GOPATH}/bin:${PATH}"
-
-# Verify Go installation
-RUN go version
-
-# Clone and build OpenVPN from GitHub
+# Build OpenVPN
 RUN git clone https://github.com/OpenVPN/openvpn.git /opt/openvpn && \
     cd /opt/openvpn && \
     git checkout ${OPENVPN_VERSION} && \
@@ -61,46 +38,86 @@ RUN git clone https://github.com/OpenVPN/openvpn.git /opt/openvpn && \
     rm -rf /opt/openvpn/sample/sample-keys/*.key \
            /opt/openvpn/sample/sample-config-files/loopback-client
 
-# Create openvpn user and group with a shell (needed for sudo)
+# ============================================
+# Stage 2: Build Go Exporter
+# ============================================
+FROM golang:1.23-bookworm AS go-builder
+
+WORKDIR /build
+
+# Copy go.mod and go.sum first (better layer caching)
+COPY Exporter/go.mod Exporter/go.sum ./
+RUN go mod download && go mod verify
+
+# Copy source code
+COPY Exporter/ ./
+
+# Build statically linked binary
+RUN CGO_ENABLED=0 GOOS=linux go build \
+    -a -installsuffix cgo \
+    -ldflags="-w -s" \
+    -o openvpn-exporter .
+
+# ============================================
+# Stage 3: Final Runtime Image
+# ============================================
+FROM debian:12-slim
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install ONLY runtime dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    ca-certificates \
+    libssl3 \
+    liblzo2-2 \
+    liblz4-1 \
+    libpam0g \
+    libpkcs11-helper1 \
+    libcap-ng0 \
+    libnl-3-200 \
+    libnl-genl-3-200 \
+    net-tools \
+    iproute2 \
+    curl \
+    sudo \
+    procps \
+    iptables \
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy OpenVPN binary and necessary files from builder
+COPY --from=openvpn-builder /usr/local/sbin/openvpn /usr/local/sbin/openvpn
+COPY --from=openvpn-builder /opt/openvpn/sample /opt/openvpn/sample
+
+# Copy Go exporter binary from builder
+COPY --from=go-builder /build/openvpn-exporter /home/openvpn/exporter/openvpn-exporter
+
+# Create openvpn user and group
 RUN groupadd --system openvpn && \
     useradd --system --create-home --home-dir /home/openvpn --shell /bin/bash -g openvpn openvpn
 
-# Setup sudo for openvpn user (no password required)
+# Setup sudo
 RUN echo "openvpn ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/openvpn && \
     chmod 0440 /etc/sudoers.d/openvpn
 
-# Create OpenVPN configuration and log directories
-RUN mkdir -p /home/openvpn/config /home/openvpn/logs /home/openvpn/exporter /home/openvpn/go && \
+# Create directories
+RUN mkdir -p /home/openvpn/config /home/openvpn/logs /home/openvpn/exporter && \
     chown -R openvpn:openvpn /home/openvpn
 
-# Logging to standard output
+# Link logs to stdout
 RUN ln -sf /dev/stdout /home/openvpn/logs/openvpn.log
 
-# Copy OpenVPN exporter
-COPY --chown=openvpn:openvpn Exporter/ /home/openvpn/exporter/
-
-# Copy configuration and script files
+# Copy configuration files
 COPY --chown=openvpn:openvpn Server/reload-config.sh /home/openvpn/reload-config.sh
 COPY --chown=openvpn:openvpn Server/exporter.yml /home/openvpn/exporter.yml
-
-# Make script executable
 RUN chmod +x /home/openvpn/reload-config.sh
 
-# Build OpenVPN exporter as openvpn user
-USER openvpn
-WORKDIR /home/openvpn/exporter
-
-# Download dependencies and build
-RUN go mod tidy && \
-    go mod download && \
-    go mod verify && \
-    go build -v -o openvpn-exporter .
-
-# Use working directory
 WORKDIR /home/openvpn
 
-# Expose OpenVPN and exporter ports
+# Expose ports
 EXPOSE 443/tcp 443/udp 9234/tcp
 
-# Run reload script on container start
+USER openvpn
+
 ENTRYPOINT ["/home/openvpn/reload-config.sh"]
