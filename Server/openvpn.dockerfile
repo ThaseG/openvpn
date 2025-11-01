@@ -1,6 +1,7 @@
 # ============================================
 # Stage 1: Build OpenVPN
 # ============================================
+
 FROM debian:12-slim AS openvpn-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -41,6 +42,7 @@ RUN git clone https://github.com/OpenVPN/openvpn.git /opt/openvpn && \
 # ============================================
 # Stage 2: Build Go Exporter
 # ============================================
+
 FROM debian:12-slim AS go-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -63,11 +65,10 @@ RUN apt-get update && \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy go.mod first
-COPY Exporter/go.mod ./
-COPY Exporter/go.sum* ./
+# Copy go files
+COPY Exporter/go.* ./
 
-# Download dependencies
+# Download dependencies (will create go.sum if missing)
 RUN go mod download && go mod verify
 
 # Copy source code
@@ -82,6 +83,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
 # ============================================
 # Stage 3: Final Runtime Image
 # ============================================
+
 FROM debian:12-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
