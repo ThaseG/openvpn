@@ -97,7 +97,7 @@ jobs:
 
   e2e-test:
     runs-on: self-hosted
-    needs: go-lint
+    needs: trivy-scan
     steps:
     - uses: actions/checkout@v4
     
