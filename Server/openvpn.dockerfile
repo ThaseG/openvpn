@@ -1,7 +1,6 @@
 # ============================================
 # Stage 1: Build OpenVPN
 # ============================================
-
 FROM debian:12-slim AS openvpn-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -42,11 +41,11 @@ RUN git clone https://github.com/OpenVPN/openvpn.git /opt/openvpn && \
 # ============================================
 # Stage 2: Build Go Exporter
 # ============================================
-
 FROM debian:12-slim AS go-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV GO_VERSION=1.23.4
+# Update to latest Go version to fix CVEs
+ENV GO_VERSION=1.25.3
 ENV GOPATH=/go
 ENV PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
 
@@ -82,7 +81,6 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
 # ============================================
 # Stage 3: Final Runtime Image
 # ============================================
-
 FROM debian:12-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -101,10 +99,9 @@ RUN apt-get update && \
     libnl-genl-3-200 \
     net-tools \
     iproute2 \
-    curl \
-    sudo \
     procps \
     iptables \
+    && apt-get upgrade -y \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
