@@ -99,20 +99,15 @@ RUN apt-get update && \
     libnl-genl-3-200 \
     net-tools \
     iproute2 \
+    curl \
+    sudo \
     procps \
     iptables \
     && apt-get upgrade -y \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy OpenVPN binary and necessary files from builder
-COPY --from=openvpn-builder /usr/local/sbin/openvpn /usr/local/sbin/openvpn
-COPY --from=openvpn-builder /opt/openvpn/sample /opt/openvpn/sample
-
-# Copy Go exporter binary from builder
-COPY --from=go-builder /build/openvpn-exporter /home/openvpn/exporter/openvpn-exporter
-
-# Create openvpn user and group
+# Create openvpn user and group FIRST
 RUN groupadd --system openvpn && \
     useradd --system --create-home --home-dir /home/openvpn --shell /bin/bash -g openvpn openvpn
 
@@ -120,9 +115,16 @@ RUN groupadd --system openvpn && \
 RUN echo "openvpn ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/openvpn && \
     chmod 0440 /etc/sudoers.d/openvpn
 
-# Create directories
+# Create additional directories
 RUN mkdir -p /home/openvpn/config /home/openvpn/logs /home/openvpn/exporter && \
     chown -R openvpn:openvpn /home/openvpn
+
+# Copy OpenVPN binary and necessary files from builder
+COPY --from=openvpn-builder /usr/local/sbin/openvpn /usr/local/sbin/openvpn
+COPY --from=openvpn-builder /opt/openvpn/sample /opt/openvpn/sample
+
+# Copy Go exporter binary from builder
+COPY --from=go-builder /build/openvpn-exporter /home/openvpn/exporter/openvpn-exporter
 
 # Link logs to stdout
 RUN ln -sf /dev/stdout /home/openvpn/logs/openvpn.log
