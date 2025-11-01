@@ -27,7 +27,7 @@ jobs:
     - uses: actions/setup-go@v4
       if: steps.changes.outputs.changed == 'true'
       with:
-        go-version: '1.19'
+        go-version: '1.23'
     
     - name: Setup Go environment and dependencies
       if: steps.changes.outputs.changed == 'true'
@@ -53,6 +53,47 @@ jobs:
       if: steps.changes.outputs.changed == 'true'
       working-directory: Exporter
       run: golangci-lint run --timeout=5m
+
+  docker-build:
+    runs-on: self-hosted
+    needs: go-lint
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Build Docker image
+      run: |
+        docker build -t openvpn-server:latest -f ./Server/openvpn.dockerfile .
+
+  trivy-scan:
+    runs-on: self-hosted
+    needs: docker-build
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Trivy
+      run: |
+        # Check if trivy is already installed
+        if ! command -v trivy &> /dev/null; then
+          echo "Installing Trivy..."
+          sudo apt-get update
+          sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install -y trivy
+        else
+          echo "Trivy is already installed"
+          trivy --version
+        fi
+    
+    - name: Run Trivy vulnerability scanner
+      run: |
+        trivy image \
+          --severity HIGH,CRITICAL,MEDIUM \
+          --exit-code 1 \
+          --no-progress \
+          --format table \
+          openvpn-server:latest
 
   e2e-test:
     runs-on: self-hosted
