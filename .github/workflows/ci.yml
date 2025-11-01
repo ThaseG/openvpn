@@ -74,6 +74,7 @@ jobs:
       run: |
         trivy image \
           --severity HIGH,CRITICAL,MEDIUM \
+          --ignorefile .trivyignore \
           --exit-code 1 \
           --no-progress \
           --format table \

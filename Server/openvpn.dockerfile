@@ -44,7 +44,6 @@ RUN git clone https://github.com/OpenVPN/openvpn.git /opt/openvpn && \
 FROM debian:12-slim AS go-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
-# Update to latest Go version to fix CVEs
 ENV GO_VERSION=1.25.3
 ENV GOPATH=/go
 ENV PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
@@ -81,15 +80,15 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
 # ============================================
 # Stage 3: Final Runtime Image
 # ============================================
-FROM debian:12-slim
+FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install ONLY runtime dependencies
+# Install runtime dependencies
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     ca-certificates \
-    libssl3 \
+    libssl3t64 \
     liblzo2-2 \
     liblz4-1 \
     libpam0g \
@@ -97,17 +96,14 @@ RUN apt-get update && \
     libcap-ng0 \
     libnl-3-200 \
     libnl-genl-3-200 \
-    net-tools \
     iproute2 \
-    curl \
     sudo \
-    procps \
     iptables \
     && apt-get upgrade -y \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Create openvpn user and group FIRST
+# Create openvpn user and group
 RUN groupadd --system openvpn && \
     useradd --system --create-home --home-dir /home/openvpn --shell /bin/bash -g openvpn openvpn
 
@@ -115,7 +111,7 @@ RUN groupadd --system openvpn && \
 RUN echo "openvpn ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/openvpn && \
     chmod 0440 /etc/sudoers.d/openvpn
 
-# Create additional directories
+# Create directories
 RUN mkdir -p /home/openvpn/config /home/openvpn/logs /home/openvpn/exporter && \
     chown -R openvpn:openvpn /home/openvpn
 
