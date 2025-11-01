@@ -91,7 +91,8 @@ USER openvpn
 WORKDIR /home/openvpn/exporter
 
 # Download dependencies and build
-RUN go mod download && \
+RUN go mod tidy && \
+    go mod download && \
     go mod verify && \
     go build -v -o openvpn-exporter .
 
