@@ -65,14 +65,13 @@ RUN apt-get update && \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy go files
-COPY Exporter/go.* ./
-
-# Download dependencies (will create go.sum if missing)
-RUN go mod download && go mod verify
-
-# Copy source code
+# Copy go files and source code
 COPY Exporter/ ./
+
+# Generate proper go.sum with all dependencies from source code
+RUN go mod tidy && \
+    go mod download && \
+    go mod verify
 
 # Build statically linked binary
 RUN CGO_ENABLED=0 GOOS=linux go build \
