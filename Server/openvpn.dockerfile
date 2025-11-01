@@ -45,8 +45,12 @@ FROM golang:1.23-bookworm AS go-builder
 
 WORKDIR /build
 
-# Copy go.mod and go.sum first (better layer caching)
-COPY Exporter/go.mod Exporter/go.sum ./
+# Copy go.mod first
+COPY Exporter/go.mod ./
+
+# Copy go.sum if it exists (using wildcard pattern)
+COPY Exporter/go.su[m] ./ 2>/dev/null || true
+
 RUN go mod download && go mod verify
 
 # Copy source code
