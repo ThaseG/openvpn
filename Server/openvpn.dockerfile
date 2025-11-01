@@ -41,13 +41,33 @@ RUN git clone https://github.com/OpenVPN/openvpn.git /opt/openvpn && \
 # ============================================
 # Stage 2: Build Go Exporter
 # ============================================
-FROM golang:1.23-bookworm AS go-builder
+FROM debian:12-slim AS go-builder
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV GO_VERSION=1.23.4
+ENV GOPATH=/go
+ENV PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
 
 WORKDIR /build
 
-# Copy go.mod and go.sum (if exists) using wildcard
-COPY Exporter/go.* ./
+# Install dependencies and Go
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    ca-certificates \
+    wget \
+    && wget -q https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz \
+    && tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz \
+    && rm go${GO_VERSION}.linux-amd64.tar.gz \
+    && apt-get remove -y wget \
+    && apt-get autoremove -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
+# Copy go.mod first
+COPY Exporter/go.mod ./
+COPY Exporter/go.sum* ./
+
+# Download dependencies
 RUN go mod download && go mod verify
 
 # Copy source code
