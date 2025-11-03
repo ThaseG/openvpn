@@ -137,3 +137,15 @@ docker run -d --name client-bookworm \
   --cap-add NET_ADMIN \
   --device /dev/net/tun:/dev/net/tun \
   ${CLIENT_BOOKWORM_IMAGE_NAME}
+
+echo "=================================="
+echo "========== Server logs ==========="
+echo "=================================="
+
+docker logs openvpn-server
+
+echo "=================================="
+echo "========== Client logs ==========="
+echo "=================================="
+
+docker logs client-bookworm
