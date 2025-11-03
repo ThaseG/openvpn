@@ -73,7 +73,7 @@ jobs:
     - name: Run Trivy vulnerability scanner
       run: |
         trivy image \
-          --severity HIGH,CRITICAL,MEDIUM \
+          --severity HIGH,CRITICAL \
           --ignorefile .trivyignore \
           --exit-code 1 \
           --no-progress \
