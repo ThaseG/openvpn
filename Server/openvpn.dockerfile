@@ -1,6 +1,7 @@
 # ============================================
 # Stage 1: Build OpenVPN
 # ============================================
+
 FROM debian:12-slim AS openvpn-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -41,10 +42,11 @@ RUN git clone https://github.com/OpenVPN/openvpn.git /opt/openvpn && \
 # ============================================
 # Stage 2: Build Go Exporter
 # ============================================
+
 FROM debian:12-slim AS go-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV GO_VERSION=1.25.3
+ENV GO_VERSION=1.23.5
 ENV GOPATH=/go
 ENV PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
 
@@ -54,6 +56,7 @@ WORKDIR /build
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     ca-certificates \
+    git \
     wget \
     && wget -q https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz \
     && tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz \
@@ -63,16 +66,12 @@ RUN apt-get update && \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy go files and source code
-COPY Exporter/ ./
-
-# Generate proper go.sum with all dependencies from source code
-RUN go mod tidy && \
+# Clone and build exporter
+RUN git clone https://github.com/ThaseG/openvpn-exporter /build && \
+    go mod tidy && \
     go mod download && \
-    go mod verify
-
-# Build statically linked binary
-RUN CGO_ENABLED=0 GOOS=linux go build \
+    go mod verify && \
+    CGO_ENABLED=0 GOOS=linux go build \
     -a -installsuffix cgo \
     -ldflags="-w -s" \
     -o openvpn-exporter .
@@ -80,6 +79,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
 # ============================================
 # Stage 3: Final Runtime Image
 # ============================================
+
 FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
