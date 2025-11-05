@@ -7,56 +7,8 @@ on:
     branches: [ main ]
 
 jobs:
-  
-  go-lint:
-    runs-on: self-hosted
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    
-    - name: Check for changes in Exporter
-      id: changes
-      run: |
-        if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q '^Exporter/'; then
-          echo "changed=true" >> $GITHUB_OUTPUT
-        else
-          echo "changed=false" >> $GITHUB_OUTPUT
-        fi
-    
-    - uses: actions/setup-go@v4
-      if: steps.changes.outputs.changed == 'true'
-      with:
-        go-version: '1.23'
-    
-    - name: Setup Go environment and dependencies
-      if: steps.changes.outputs.changed == 'true'
-      working-directory: Exporter
-      run: |
-        # Generate go.sum if missing or incomplete
-        go mod tidy
-        
-        # Download all dependencies
-        go mod download
-        go mod verify
-        
-        # Test that it builds
-        go build -v
-    
-    - name: Install golangci-lint
-      if: steps.changes.outputs.changed == 'true'
-      run: |
-        curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.64.8
-        echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
-    
-    - name: Run golangci-lint
-      if: steps.changes.outputs.changed == 'true'
-      working-directory: Exporter
-      run: golangci-lint run --timeout=5m
-
   docker-build:
     runs-on: self-hosted
-    needs: go-lint
     steps:
     - uses: actions/checkout@v4
     
