@@ -2,6 +2,10 @@
 
 A production-ready OpenVPN server running in Docker with built-in monitoring and metrics export capabilities. Tests in pipelines are testing the versions of OpenVPN, exporter, and IPtables rules.
 
+## Used Exporter
+
+Exporter used in this project is from a dedicated [repository here.](https://github.com/ThaseG/openvpn-exporter)
+
 ## Features
 
 - 🔒 OpenVPN 2.6.15 - Built from source for latest security features
