@@ -50,7 +50,7 @@ WORKDIR /home/openvpn
 RUN ln -sf /dev/stdout /home/openvpn/logs/openvpn-client.log
 
 # Copy the reload script to the container
-COPY --chown=openvpn:openvpn Testing/reload-client-focal.sh /home/openvpn/reload-client-focal.sh
+COPY --chown=openvpn:openvpn testing/reload-client-focal.sh /home/openvpn/reload-client-focal.sh
 
 # Ensure the script is executable
 RUN chmod +x /home/openvpn/reload-client-focal.sh

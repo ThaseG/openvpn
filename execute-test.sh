@@ -79,7 +79,7 @@ echo "Building new openvpn generator image ..."
 docker builder build \
   --build-arg OPENVPN_VERSION="${OPENVPN_VERSION}" \
   -t ${GENERATOR_IMAGE_NAME} \
-  -f Testing/openvpn_generator.dockerfile \
+  -f testing/openvpn_generator.dockerfile \
   .
 
 # Show current images
@@ -106,7 +106,7 @@ docker run -d --name openvpn-generator -v openvpn_config:/home/openvpn/config op
 echo "Building new openvpn server image ..."
 docker builder build \
   -t ${SERVER_IMAGE_NAME} \
-  -f Server/openvpn.dockerfile \
+  -f server/openvpn.dockerfile \
   .
 
 # Wait until generate config will end
@@ -116,7 +116,7 @@ docker wait openvpn-generator 2>/dev/null || true
 echo "Building openvpn client-bookworm image ..."
 docker builder build \
   -t ${CLIENT_BOOKWORM_IMAGE_NAME} \
-  -f Testing/openvpn_client_bookworm.dockerfile \
+  -f testing/openvpn_client_bookworm.dockerfile \
   .
 
 # Run container out from this image

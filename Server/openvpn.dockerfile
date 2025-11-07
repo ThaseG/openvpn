@@ -126,8 +126,8 @@ COPY --from=go-builder /build/openvpn-exporter /home/openvpn/exporter/openvpn-ex
 RUN ln -sf /dev/stdout /home/openvpn/logs/openvpn.log
 
 # Copy configuration files
-COPY --chown=openvpn:openvpn Server/reload-config.sh /home/openvpn/reload-config.sh
-COPY --chown=openvpn:openvpn Server/exporter.yml /home/openvpn/exporter.yml
+COPY --chown=openvpn:openvpn server/reload-config.sh /home/openvpn/reload-config.sh
+COPY --chown=openvpn:openvpn server/exporter.yml /home/openvpn/exporter.yml
 RUN chmod +x /home/openvpn/reload-config.sh
 
 WORKDIR /home/openvpn
