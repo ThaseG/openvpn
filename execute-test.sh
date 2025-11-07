@@ -75,12 +75,12 @@ docker rmi -f "${SERVER_IMAGE_NAME}" 2>/dev/null || true
 docker rmi -f "${CLIENT_BOOKWORM_IMAGE_NAME}" 2>/dev/null || true
 
 # Build new generator image
-echo "Building new openvpn generator image ..."
-docker builder build \
-  --build-arg OPENVPN_VERSION="${OPENVPN_VERSION}" \
-  -t ${GENERATOR_IMAGE_NAME} \
-  -f testing/openvpn_generator.dockerfile \
-  .
+#echo "Building new openvpn generator image ..."
+#docker builder build \
+#  --build-arg OPENVPN_VERSION="${OPENVPN_VERSION}" \
+#  -t ${GENERATOR_IMAGE_NAME} \
+#  -f testing/openvpn_generator.dockerfile \
+#  .
 
 # Show current images
 docker images
@@ -94,10 +94,10 @@ docker network create --subnet=192.168.200.0/24 external
 docker network create --subnet=10.10.10.0/24 internal
 
 # Delete docker volume
-docker volume rm openvpn_config 2>/dev/null || true
+# docker volume rm openvpn_config 2>/dev/null || true
 
 # Create docker volume
-docker volume create openvpn_config
+# docker volume create openvpn_config
 
 # Run container out from this image
 docker run -d --name openvpn-generator -v openvpn_config:/home/openvpn/config openvpn-generator:v1.0.0
