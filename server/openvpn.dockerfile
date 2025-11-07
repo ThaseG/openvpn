@@ -99,6 +99,7 @@ RUN apt-get update && \
     iproute2 \
     curl \
     vim \
+    openssl \
     sudo \
     iptables \
     && apt-get upgrade -y \
