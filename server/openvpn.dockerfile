@@ -5,7 +5,7 @@
 FROM debian:12-slim AS openvpn-builder
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV OPENVPN_VERSION=v2.6.15
+ENV OPENVPN_VERSION=v2.6.16
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
