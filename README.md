@@ -8,7 +8,7 @@ Exporter used in this project is from a dedicated [repository here.](https://git
 
 ## Features
 
-- 🔒 OpenVPN 2.6.15 - Built from source for latest security features
+- 🔒 OpenVPN 2.6.17 - Built from source for latest security features
 - 🐳 Docker-based - Easy deployment and management
 - 📊 Prometheus Metrics - Built-in OpenVPN exporter for monitoring
 - 🔄 Dual Protocol Support - Run TCP and UDP instances simultaneously
