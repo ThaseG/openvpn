@@ -50,4 +50,4 @@ MIT License - feel free to use and modify as needed.
  - in case of need, please contact owner group : [ThaseG](mailto:andrej@hyben.net)
  - see [Changelog](./CHANGELOG.md) for release information.
  - check [Upgrade procedure](./UPGRADE.md) to see how to create new openvpn container image.
-- check [Tests](./Tests.md) to see how automated tests works within this repository to verify version.
+ - check [Tests](./Tests.md) to see how automated tests works within this repository to verify version.
