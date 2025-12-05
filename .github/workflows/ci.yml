@@ -14,7 +14,7 @@ jobs:
     
     - name: Build Docker image
       run: |
-        docker build -t openvpn-server:latest -f ./server/openvpn.dockerfile .
+        docker build --no-cache -t openvpn-server:latest -f ./server/openvpn.dockerfile .
 
   trivy-scan:
     runs-on: self-hosted
