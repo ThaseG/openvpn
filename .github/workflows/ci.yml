@@ -7,7 +7,95 @@ on:
     branches: [ main ]
 
 jobs:
-  docker-build:
+  pre-clean-up:
+    runs-on: self-hosted
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Run pre-clean-up
+      run: |
+        # Load version variables
+        source ../../versions.sh
+        
+        GENERATOR_IMAGE_NAME="openvpn-generator:${IMAGE_VERSION}"
+        CLIENT_BOOKWORM_IMAGE_NAME="openvpn-bookworm:${IMAGE_VERSION}"
+        CLIENT_BULLSEYE_IMAGE_NAME="openvpn-bullseye:${IMAGE_VERSION}"
+        CLIENT_JAMMY_IMAGE_NAME="openvpn-jammy:${IMAGE_VERSION}"
+        CLIENT_FOCAL_IMAGE_NAME="openvpn-focal:${IMAGE_VERSION}"
+        SERVER_IMAGE_NAME="openvpn:${IMAGE_VERSION}"
+        
+        echo "Image Version=${IMAGE_VERSION}"
+        echo "OpenVPN Version=${OPENVPN_VERSION}"
+        echo "IMAGE_NAME=${SERVER_IMAGE_NAME}"
+        echo ""
+        
+        # Stop openvpn-generator if running
+        if docker ps --filter "name=openvpn-generator" --format "{{.Names}}" | grep -q "openvpn-generator"; then
+            echo "Stopping openvpn-generator container..."
+            docker stop openvpn-generator
+            echo "Waiting for openvpn-generator to stop..."
+            while docker ps --filter "name=openvpn-generator" --format "{{.Names}}" | grep -q "openvpn-generator"; do
+                sleep 1
+            done
+            echo "openvpn-generator stopped"
+        else
+            echo "Container openvpn-generator is not running, skipping..."
+        fi
+        
+        # Stop openvpn-server if running
+        if docker ps --filter "name=openvpn-server" --format "{{.Names}}" | grep -q "^openvpn-server"; then
+            echo "Stopping openvpn-server container..."
+            docker stop openvpn-server
+            echo "Waiting for openvpn-server to stop..."
+            while docker ps --filter "name=openvpn-server" --format "{{.Names}}" | grep -q "^openvpn-server"; do
+                sleep 1
+            done
+            echo "openvpn-server stopped"
+        else
+            echo "Container openvpn-server is not running, skipping..."
+        fi
+        
+        # Stop client-bookworm if running
+        if docker ps --filter "name=client-bookworm" --format "{{.Names}}" | grep -q "^client-bookworm"; then
+            echo "Stopping client-bookworm container..."
+            docker stop client-bookworm
+            echo "Waiting for client-bookworm to stop..."
+            while docker ps --filter "name=client-bookworm" --format "{{.Names}}" | grep -q "^client-bookworm"; do
+                sleep 1
+            done
+            echo "client-bookworm stopped"
+        else
+            echo "Container client-bookworm is not running, skipping..."
+        fi
+        
+        # Remove containers if they exist
+        if docker ps -a --format '{{.Names}}' | grep -q '^openvpn-generator$'; then
+            docker rm openvpn-generator
+        fi
+        
+        if docker ps -a --format '{{.Names}}' | grep -q '^openvpn-server$'; then
+            docker rm openvpn-server
+        fi
+        
+        if docker ps -a --format '{{.Names}}' | grep -q '^client-bookworm$'; then
+            docker rm client-bookworm
+        fi
+        
+        # Clean up old images
+        echo "Removing older openvpn config generator image builds..."
+        docker rmi -f "${GENERATOR_IMAGE_NAME}" 2>/dev/null || true
+        docker rmi -f "${SERVER_IMAGE_NAME}" 2>/dev/null || true
+        docker rmi -f "${CLIENT_BOOKWORM_IMAGE_NAME}" 2>/dev/null || true
+        
+        # Show current images
+        docker images
+        
+        # Clean docker networks
+        docker network rm external 2>/dev/null || true
+        docker network rm internal 2>/dev/null || true
+
+  docker-image-build:
     runs-on: self-hosted
     steps:
     - uses: actions/checkout@v4
@@ -18,7 +106,7 @@ jobs:
 
   trivy-scan:
     runs-on: self-hosted
-    needs: docker-build
+    needs: docker-image-build
     steps:
     - uses: actions/checkout@v4
     
