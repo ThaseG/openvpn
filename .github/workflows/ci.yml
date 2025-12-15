@@ -111,6 +111,33 @@ jobs:
         echo "# docker network ls"
         docker network ls
 
+    - name: Remove all Docker images
+      run: |
+        echo "Fetching list of all Docker images..."
+        docker images --format "{{.Repository}}:{{.Tag}}" | while read -r image; do
+            if [ "$image" != "<none>:<none>" ]; then
+                echo "Attempting to remove image: $image"
+                if docker rmi -f "$image" 2>/dev/null; then
+                    echo "✓ Successfully removed: $image"
+                else
+                    echo "✗ Failed to remove (skipping): $image"
+                fi
+            fi
+        done
+        
+        # Clean up dangling images separately
+        echo "Removing dangling images..."
+        docker images --filter "dangling=true" -q | while read -r image_id; do
+            if [ -n "$image_id" ]; then
+                echo "Attempting to remove dangling image: $image_id"
+                docker rmi -f "$image_id" 2>/dev/null || echo "✗ Failed to remove (skipping): $image_id"
+            fi
+        done
+        
+        echo ""
+        echo "Cleanup complete. Remaining images:"
+        docker images
+
   docker-image-build:
     runs-on: self-hosted
     needs: pre-clean-up
