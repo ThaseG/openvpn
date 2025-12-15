@@ -69,18 +69,25 @@ jobs:
             echo "Container client-bookworm is not running, skipping..."
         fi
         
+        echo ""
+
         # Remove containers if they exist
         if docker ps -a --format '{{.Names}}' | grep -q '^openvpn-generator$'; then
             docker rm openvpn-generator
+            echo "openvpn-generator container removed"
         fi
         
         if docker ps -a --format '{{.Names}}' | grep -q '^openvpn-server$'; then
             docker rm openvpn-server
+            echo "openvpn-server container removed"
         fi
         
         if docker ps -a --format '{{.Names}}' | grep -q '^client-bookworm$'; then
             docker rm client-bookworm
+            echo "client-bookworm container removed"
         fi
+
+        echo ""
         
         # Clean up old images
         echo "Removing older openvpn config generator image builds..."
@@ -88,12 +95,20 @@ jobs:
         docker rmi -f "${SERVER_IMAGE_NAME}" 2>/dev/null || true
         docker rmi -f "${CLIENT_BOOKWORM_IMAGE_NAME}" 2>/dev/null || true
         
+        echo ""
+
         # Show current images
+        echo "Listing all remaining images..."
+        echo "# docker images"
         docker images
-        
+
+        echo ""
+
         # Clean docker networks
         docker network rm external 2>/dev/null || true
         docker network rm internal 2>/dev/null || true
+        echo "Listing all remaining docker networks..."
+        echo "# docker network ls"
 
   docker-image-build:
     runs-on: self-hosted
