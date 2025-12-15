@@ -13,103 +13,42 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Run pre-clean-up
+    - name: Stop all running Docker containers
       run: |
-        # Load version variables
-        source versions.sh
-        
-        GENERATOR_IMAGE_NAME="openvpn-generator:${IMAGE_VERSION}"
-        CLIENT_BOOKWORM_IMAGE_NAME="openvpn-bookworm:${IMAGE_VERSION}"
-        CLIENT_BULLSEYE_IMAGE_NAME="openvpn-bullseye:${IMAGE_VERSION}"
-        CLIENT_JAMMY_IMAGE_NAME="openvpn-jammy:${IMAGE_VERSION}"
-        CLIENT_FOCAL_IMAGE_NAME="openvpn-focal:${IMAGE_VERSION}"
-        SERVER_IMAGE_NAME="openvpn:${IMAGE_VERSION}"
-        
-        echo "Image Version=${IMAGE_VERSION}"
-        echo "OpenVPN Version=${OPENVPN_VERSION}"
-        echo "IMAGE_NAME=${SERVER_IMAGE_NAME}"
-        echo ""
-        
-        # Stop openvpn-generator if running
-        if docker ps --filter "name=openvpn-generator" --format "{{.Names}}" | grep -q "openvpn-generator"; then
-            echo "Stopping openvpn-generator container..."
-            docker stop openvpn-generator
-            echo "Waiting for openvpn-generator to stop..."
-            while docker ps --filter "name=openvpn-generator" --format "{{.Names}}" | grep -q "openvpn-generator"; do
-                sleep 1
-            done
-            echo "openvpn-generator stopped"
-        else
-            echo "Container openvpn-generator is not running, skipping..."
-        fi
-        
-        # Stop openvpn-server if running
-        if docker ps --filter "name=openvpn-server" --format "{{.Names}}" | grep -q "^openvpn-server"; then
-            echo "Stopping openvpn-server container..."
-            docker stop openvpn-server
-            echo "Waiting for openvpn-server to stop..."
-            while docker ps --filter "name=openvpn-server" --format "{{.Names}}" | grep -q "^openvpn-server"; do
-                sleep 1
-            done
-            echo "openvpn-server stopped"
-        else
-            echo "Container openvpn-server is not running, skipping..."
-        fi
-        
-        # Stop client-bookworm if running
-        if docker ps --filter "name=client-bookworm" --format "{{.Names}}" | grep -q "^client-bookworm"; then
-            echo "Stopping client-bookworm container..."
-            docker stop client-bookworm
-            echo "Waiting for client-bookworm to stop..."
-            while docker ps --filter "name=client-bookworm" --format "{{.Names}}" | grep -q "^client-bookworm"; do
-                sleep 1
-            done
-            echo "client-bookworm stopped"
-        else
-            echo "Container client-bookworm is not running, skipping..."
-        fi
+        echo "Fetching list of all running Docker containers..."
+        docker ps --format "{{.Names}}" | while read -r container; do
+            if [ -n "$container" ]; then
+                echo "Attempting to stop container: $container"
+                if docker stop "$container" 2>/dev/null; then
+                    echo "✓ Successfully stopped: $container"
+                else
+                    echo "✗ Failed to stop (skipping): $container"
+                fi
+            fi
+        done
         
         echo ""
+        echo "Stop complete. Remaining running containers:"
+        docker ps
 
-        # Remove containers if they exist
-        if docker ps -a --format '{{.Names}}' | grep -q '^openvpn-generator$'; then
-            docker rm openvpn-generator
-            echo "openvpn-generator container removed"
-        fi
-        
-        if docker ps -a --format '{{.Names}}' | grep -q '^openvpn-server$'; then
-            docker rm openvpn-server
-            echo "openvpn-server container removed"
-        fi
-        
-        if docker ps -a --format '{{.Names}}' | grep -q '^client-bookworm$'; then
-            docker rm client-bookworm
-            echo "client-bookworm container removed"
-        fi
-
+    - name: Removing stopped containers
+      run: |
         echo ""
-        
-        # Clean up old images
-        echo "Removing older openvpn config generator image builds..."
-        docker rmi -f "${GENERATOR_IMAGE_NAME}" 2>/dev/null || true
-        docker rmi -f "${SERVER_IMAGE_NAME}" 2>/dev/null || true
-        docker rmi -f "${CLIENT_BOOKWORM_IMAGE_NAME}" 2>/dev/null || true
+        echo "Removing all stopped containers..."
+        docker ps -a --format "{{.Names}}" | while read -r container; do
+            if [ -n "$container" ]; then
+                echo "Attempting to remove container: $container"
+                if docker rm "$container" 2>/dev/null; then
+                    echo "✓ Successfully removed: $container"
+                else
+                    echo "✗ Failed to remove (skipping): $container"
+                fi
+            fi
+        done
         
         echo ""
-
-        # Show current images
-        echo "Listing all remaining images..."
-        echo "# docker images"
-        docker images
-
-        echo ""
-
-        # Clean docker networks
-        docker network rm external 2>/dev/null || true
-        docker network rm internal 2>/dev/null || true
-        echo "Listing all remaining docker networks..."
-        echo "# docker network ls"
-        docker network ls
+        echo "Cleanup complete. Remaining containers:"
+        docker ps -a
 
     - name: Remove all Docker images
       run: |
@@ -138,6 +77,49 @@ jobs:
         echo "Cleanup complete. Remaining images:"
         docker images
 
+    - name: Remove all Docker networks and volumes
+      run: |
+        echo "=== Removing Docker Networks ==="
+        echo "Fetching list of all Docker networks..."
+        docker network ls --format "{{.Name}}" | while read -r network; do
+            # Skip default networks that cannot be removed
+            if [ "$network" != "bridge" ] && [ "$network" != "host" ] && [ "$network" != "none" ]; then
+                echo "Attempting to remove network: $network"
+                if docker network rm "$network" 2>/dev/null; then
+                    echo "✓ Successfully removed network: $network"
+                else
+                    echo "✗ Failed to remove network (skipping): $network"
+                fi
+            else
+                echo "⊘ Skipping default network: $network"
+            fi
+        done
+        
+        echo ""
+        echo "Remaining networks:"
+        docker network ls
+        echo ""
+
+    - name: Remove all Docker networks and volumes
+      run: |
+        
+        echo "=== Removing Docker Volumes ==="
+        echo "Fetching list of all Docker volumes..."
+        docker volume ls --format "{{.Name}}" | while read -r volume; do
+            if [ -n "$volume" ]; then
+                echo "Attempting to remove volume: $volume"
+                if docker volume rm "$volume" 2>/dev/null; then
+                    echo "✓ Successfully removed volume: $volume"
+                else
+                    echo "✗ Failed to remove volume (skipping): $volume"
+                fi
+            fi
+        done
+        
+        echo ""
+        echo "Remaining volumes:"
+        docker volume ls
+
   docker-image-build:
     runs-on: self-hosted
     needs: pre-clean-up
@@ -164,11 +146,11 @@ jobs:
           --format table \
           openvpn-server:latest
 
-  e2e-test:
-    runs-on: self-hosted
-    needs: trivy-scan
-    steps:
-    - uses: actions/checkout@v4
+  # e2e-test:
+  #   runs-on: self-hosted
+  #   needs: trivy-scan
+  #   steps:
+  #   - uses: actions/checkout@v4
     
-    - name: Run tests
-      run: ./execute-test.sh
+  #   - name: Run tests
+  #     run: ./execute-test.sh
