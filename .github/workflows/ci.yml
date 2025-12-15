@@ -16,7 +16,7 @@ jobs:
     - name: Run pre-clean-up
       run: |
         # Load version variables
-        source ../../versions.sh
+        source versions.sh
         
         GENERATOR_IMAGE_NAME="openvpn-generator:${IMAGE_VERSION}"
         CLIENT_BOOKWORM_IMAGE_NAME="openvpn-bookworm:${IMAGE_VERSION}"
@@ -97,6 +97,7 @@ jobs:
 
   docker-image-build:
     runs-on: self-hosted
+    needs: pre-clean-up
     steps:
     - uses: actions/checkout@v4
     
