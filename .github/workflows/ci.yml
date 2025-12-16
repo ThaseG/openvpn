@@ -165,7 +165,7 @@ jobs:
         docker run \ 
           -d --name openvpn-generator \
           -v openvpn_configs:/home/openvpn/config \
-          - openvpn-generator:latest
+          openvpn-generator:latest
     - name: Wait for openvpn-generator to finish
       run: |
         echo "Waiting for generator container to finish..."
@@ -182,7 +182,7 @@ jobs:
           --ip=192.168.200.100 \
           --cap-add NET_ADMIN \
           --device /dev/net/tun:/dev/net/tun \
-          ${SERVER_IMAGE_NAME}
+          openvpn-server
     - name: Adding internal network to openvpn server
       run: |
         echo "Adding internal network to openvpn server..."
