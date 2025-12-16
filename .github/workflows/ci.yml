@@ -1,18 +1,16 @@
-name: CI
+name: Validation Workflow
 
 on:
   push:
     branches: [ '**' ]
   pull_request:
     branches: [ main ]
-
 jobs:
   pre-clean-up:
     runs-on: self-hosted
 
     steps:
     - uses: actions/checkout@v4
-
     - name: Stop all running Docker containers
       run: |
         echo "Fetching list of all running Docker containers..."
@@ -30,7 +28,6 @@ jobs:
         echo ""
         echo "Stop complete. Remaining running containers:"
         docker ps
-
     - name: Removing stopped containers
       run: |
         echo ""
@@ -49,7 +46,6 @@ jobs:
         echo ""
         echo "Cleanup complete. Remaining containers:"
         docker ps -a
-
     - name: Remove all Docker images
       run: |
         echo "Fetching list of all Docker images..."
@@ -76,7 +72,6 @@ jobs:
         echo ""
         echo "Cleanup complete. Remaining images:"
         docker images
-
     - name: Remove all Docker networks and volumes
       run: |
         echo "=== Removing Docker Networks ==="
@@ -99,7 +94,6 @@ jobs:
         echo "Remaining networks:"
         docker network ls
         echo ""
-
     - name: Remove all Docker networks and volumes
       run: |
         
@@ -119,23 +113,19 @@ jobs:
         echo ""
         echo "Remaining volumes:"
         docker volume ls
-
   docker-image-build:
     runs-on: self-hosted
     needs: pre-clean-up
     steps:
     - uses: actions/checkout@v4
-    
     - name: Build Docker image
       run: |
         docker build --no-cache -t openvpn-server:latest -f ./server/openvpn.dockerfile .
-
   trivy-scan:
     runs-on: self-hosted
     needs: docker-image-build
     steps:
     - uses: actions/checkout@v4
-    
     - name: Run Trivy vulnerability scanner
       run: |
         trivy image \
@@ -145,12 +135,163 @@ jobs:
           --no-progress \
           --format table \
           openvpn-server:latest
+  e2e-test:
+    runs-on: self-hosted
+    needs: trivy-scan
+    steps:
+    - uses: actions/checkout@v4
+    - name: Create openvpn network
+      run: |
+        echo "Creating openvpn networks"
+        docker network create --subnet=192.168.200.0/24 openvpn_external
+        docker network create --subnet=10.10.10.0/24 openvpn_internal
+    - name: Create openvpn volumes
+      run: |
+        echo "Creating openvpn config volume"
+        docker volume create openvpn_configs
 
-  # e2e-test:
-  #   runs-on: self-hosted
-  #   needs: trivy-scan
-  #   steps:
-  #   - uses: actions/checkout@v4
-    
-  #   - name: Run tests
-  #     run: ./execute-test.sh
+        echo "Creating openvpn logs volume"
+        docker volume create openvpn_logs
+    - name: Build OpenVPN Generator image
+      run: |
+        echo "Building new openvpn generator image ..."
+        docker builder build \
+          -t openvpn-generator:latest \
+          -f testing/openvpn_generator.dockerfile \
+          .
+    - name: Running OpenVPN Generator container
+      run: |
+        echo "Running new openvpn generator container ..."
+        docker run \ 
+          -d --name openvpn-generator \
+          -v openvpn_configs:/home/openvpn/config \
+          - openvpn-generator:latest
+    - name: Wait for openvpn-generator to finish
+      run: |
+        echo "Waiting for generator container to finish..."
+        docker wait openvpn-generator 2>/dev/null || true
+    - name: Deploy server container
+      run: |
+        echo "Deploying openvpn-server container..."
+        docker run -d --name openvpn-server \
+          -v openvpn_configs:/home/openvpn/config \
+          -v openvpn_logs:/home/openvpn/logs \
+          --network=external \
+          -p 443:443 \
+          -p 9234:9234 \
+          --ip=192.168.200.100 \
+          --cap-add NET_ADMIN \
+          --device /dev/net/tun:/dev/net/tun \
+          ${SERVER_IMAGE_NAME}
+    - name: Adding internal network to openvpn server
+      run: |
+        echo "Adding internal network to openvpn server..."
+        docker network connect --ip 10.10.10.100 internal openvpn-server
+  post-clean-up:
+    runs-on: self-hosted
+    needs: e2e-test
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Stop all running Docker containers
+      run: |
+        echo "Fetching list of all running Docker containers..."
+        docker ps --format "{{.Names}}" | while read -r container; do
+            if [ -n "$container" ]; then
+                echo "Attempting to stop container: $container"
+                if docker stop "$container" 2>/dev/null; then
+                    echo "✓ Successfully stopped: $container"
+                else
+                    echo "✗ Failed to stop (skipping): $container"
+                fi
+            fi
+        done
+        
+        echo ""
+        echo "Stop complete. Remaining running containers:"
+        docker ps
+    - name: Removing stopped containers
+      run: |
+        echo ""
+        echo "Removing all stopped containers..."
+        docker ps -a --format "{{.Names}}" | while read -r container; do
+            if [ -n "$container" ]; then
+                echo "Attempting to remove container: $container"
+                if docker rm "$container" 2>/dev/null; then
+                    echo "✓ Successfully removed: $container"
+                else
+                    echo "✗ Failed to remove (skipping): $container"
+                fi
+            fi
+        done
+        
+        echo ""
+        echo "Cleanup complete. Remaining containers:"
+        docker ps -a
+    - name: Remove all Docker images
+      run: |
+        echo "Fetching list of all Docker images..."
+        docker images --format "{{.Repository}}:{{.Tag}}" | while read -r image; do
+            if [ "$image" != "<none>:<none>" ]; then
+                echo "Attempting to remove image: $image"
+                if docker rmi -f "$image" 2>/dev/null; then
+                    echo "✓ Successfully removed: $image"
+                else
+                    echo "✗ Failed to remove (skipping): $image"
+                fi
+            fi
+        done
+        
+        # Clean up dangling images separately
+        echo "Removing dangling images..."
+        docker images --filter "dangling=true" -q | while read -r image_id; do
+            if [ -n "$image_id" ]; then
+                echo "Attempting to remove dangling image: $image_id"
+                docker rmi -f "$image_id" 2>/dev/null || echo "✗ Failed to remove (skipping): $image_id"
+            fi
+        done
+        
+        echo ""
+        echo "Cleanup complete. Remaining images:"
+        docker images
+    - name: Remove all Docker networks and volumes
+      run: |
+        echo "=== Removing Docker Networks ==="
+        echo "Fetching list of all Docker networks..."
+        docker network ls --format "{{.Name}}" | while read -r network; do
+            # Skip default networks that cannot be removed
+            if [ "$network" != "bridge" ] && [ "$network" != "host" ] && [ "$network" != "none" ]; then
+                echo "Attempting to remove network: $network"
+                if docker network rm "$network" 2>/dev/null; then
+                    echo "✓ Successfully removed network: $network"
+                else
+                    echo "✗ Failed to remove network (skipping): $network"
+                fi
+            else
+                echo "⊘ Skipping default network: $network"
+            fi
+        done
+        
+        echo ""
+        echo "Remaining networks:"
+        docker network ls
+        echo ""
+    - name: Remove all Docker networks and volumes
+      run: |
+        
+        echo "=== Removing Docker Volumes ==="
+        echo "Fetching list of all Docker volumes..."
+        docker volume ls --format "{{.Name}}" | while read -r volume; do
+            if [ -n "$volume" ]; then
+                echo "Attempting to remove volume: $volume"
+                if docker volume rm "$volume" 2>/dev/null; then
+                    echo "✓ Successfully removed volume: $volume"
+                else
+                    echo "✗ Failed to remove volume (skipping): $volume"
+                fi
+            fi
+        done
+        
+        echo ""
+        echo "Remaining volumes:"
+        docker volume ls
