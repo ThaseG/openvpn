@@ -184,10 +184,10 @@ jobs:
           --cap-add NET_ADMIN \
           --device /dev/net/tun:/dev/net/tun \
           openvpn-server
-    - name: Adding internal network to openvpn server
+    - name: Adding openvpn_internal network to openvpn server
       run: |
-        echo "Adding openvpn-internal network to openvpn-server..."
-        docker network connect --ip 10.10.10.100 openvpn-internal openvpn-server
+        echo "Adding openvpn_internal network to openvpn-server..."
+        docker network connect --ip 10.10.10.100 openvpn_internal openvpn-server
   post-clean-up:
     runs-on: self-hosted
     needs: e2e-test
