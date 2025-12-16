@@ -159,11 +159,12 @@ jobs:
           -t openvpn-generator:latest \
           -f testing/openvpn_generator.dockerfile \
           .
-    - name: Running OpenVPN Generator container
+    - name: Run OpenVPN Generator Container
       run: |
         echo "Running new openvpn generator container ..."
-        docker run \ 
-          -d --name openvpn-generator \
+        docker run \
+          -d \
+          --name openvpn-generator \
           -v openvpn_configs:/home/openvpn/config \
           openvpn-generator:latest
     - name: Wait for openvpn-generator to finish
