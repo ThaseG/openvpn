@@ -222,21 +222,6 @@ jobs:
           --network=openvpn_external \
           --ip=192.168.200.20 \
           openvpn-client-bullseye
-    - name: Building openvpn-client-focal image
-      run: |
-        echo "Building openvpn-client-focal image ..."
-        docker builder build \
-          -t openvpn-client-focal \
-          -f testing/openvpn_client_focal.dockerfile \
-          .
-    - name: Deploy openvpn-client-focal
-      run: |
-        echo "Deploying openvpn-client-focal container..."
-        docker run -d --name openvpn-client-focal \
-          -v openvpn_configs:/home/openvpn/config \
-          --network=openvpn_external \
-          --ip=192.168.200.30 \
-          openvpn-client-focal
     - name: Building openvpn-client-jammy image
       run: |
         echo "Building openvpn-client-jammy image ..."
@@ -264,7 +249,6 @@ jobs:
       run: |
         docker exec openvpn-client-bookworm ping 10.10.10.10 -c 10
         docker exec openvpn-client-bullseye ping 10.10.10.10 -c 10
-        docker exec openvpn-client-focal ping 10.10.10.10 -c 10
         docker exec openvpn-client-jammy ping 10.10.10.10 -c 10
     - name: Wait for 30 seconds
       run: |
