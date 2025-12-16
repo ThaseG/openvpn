@@ -171,6 +171,9 @@ jobs:
       run: |
         echo "Waiting for generator container to finish..."
         docker wait openvpn-generator 2>/dev/null || true
+
+        echo "Just for sure showing running containers..."
+        docker ps | grep openvpn-generator
     - name: Deploy server container
       run: |
         echo "Deploying openvpn-server container..."
