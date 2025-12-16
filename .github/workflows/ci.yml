@@ -113,7 +113,7 @@ jobs:
         echo ""
         echo "Remaining volumes:"
         docker volume ls
-  docker-image-build:
+  BUILD-openvpn-server-image:
     runs-on: self-hosted
     needs: pre-clean-up
     steps:
@@ -121,9 +121,9 @@ jobs:
     - name: Build Docker image
       run: |
         docker build --no-cache -t openvpn-server:latest -f ./server/openvpn.dockerfile .
-  trivy-scan:
+  TEST-trivy-vulnerability-scan:
     runs-on: self-hosted
-    needs: docker-image-build
+    needs: BUILD-openvpn-server-image
     steps:
     - uses: actions/checkout@v4
     - name: Run Trivy vulnerability scanner
@@ -135,9 +135,9 @@ jobs:
           --no-progress \
           --format table \
           openvpn-server:latest
-  e2e-test:
+  TEST-e2e:
     runs-on: self-hosted
-    needs: trivy-scan
+    needs: TEST-trivy-vulnerability-scan
     steps:
     - uses: actions/checkout@v4
     - name: Create openvpn network
@@ -190,7 +190,7 @@ jobs:
         docker network connect --ip 10.10.10.100 openvpn_internal openvpn-server
   post-clean-up:
     runs-on: self-hosted
-    needs: e2e-test
+    needs: TEST-e2e
 
     steps:
     - uses: actions/checkout@v4
