@@ -260,6 +260,21 @@ jobs:
           --network=openvpn_internal \
           --ip=10.10.10.10 \
           debian:bookworm
+    - name: Run ping test
+      run: |
+        docker exec -it openvpn-client-bookworm ping 10.10.10.10 -c 10
+        docker exec -it openvpn-client-bullseye ping 10.10.10.10 -c 10
+        docker exec -it openvpn-client-focal ping 10.10.10.10 -c 10
+        docker exec -it openvpn-client-jammy ping 10.10.10.10 -c 10
+    - name: Wait for 30 seconds
+      run: |
+        sleep 30
+    - name: GET exporter data
+      run: |
+        echo "# curl -vvv http://192.168.200.100:9234/metrics"
+        curl -vvv http://192.168.200.100:9234/metrics
+        echo "# curl -vvv http://192.168.200.100:9234/sessions_local"
+        curl -vvv http://192.168.200.100:9234/sessions_local
   post-clean-up:
     runs-on: self-hosted
     if: always()
