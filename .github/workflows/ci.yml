@@ -190,6 +190,7 @@ jobs:
         docker network connect --ip 10.10.10.100 openvpn_internal openvpn-server
   post-clean-up:
     runs-on: self-hosted
+    if: always()
     needs: TEST-e2e
 
     steps:
