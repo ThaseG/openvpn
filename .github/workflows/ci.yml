@@ -258,7 +258,7 @@ jobs:
           -dit \
           --name openvpn-protected-service \
           --network=openvpn_internal \
-          --ip=10.10.10.1 \
+          --ip=10.10.10.10 \
           debian:bookworm
   post-clean-up:
     runs-on: self-hosted
