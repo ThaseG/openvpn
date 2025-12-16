@@ -177,7 +177,7 @@ jobs:
         docker run -d --name openvpn-server \
           -v openvpn_configs:/home/openvpn/config \
           -v openvpn_logs:/home/openvpn/logs \
-          --network=external \
+          --network=openvpn_external \
           -p 443:443 \
           -p 9234:9234 \
           --ip=192.168.200.100 \
@@ -186,8 +186,8 @@ jobs:
           openvpn-server
     - name: Adding internal network to openvpn server
       run: |
-        echo "Adding internal network to openvpn server..."
-        docker network connect --ip 10.10.10.100 internal openvpn-server
+        echo "Adding openvpn-internal network to openvpn-server..."
+        docker network connect --ip 10.10.10.100 openvpn-internal openvpn-server
   post-clean-up:
     runs-on: self-hosted
     needs: e2e-test
