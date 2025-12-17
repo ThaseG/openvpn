@@ -97,6 +97,7 @@ RUN apt-get update && \
     libnl-3-200 \
     libnl-genl-3-200 \
     iproute2 \
+    iputils-ping \
     curl \
     vim \
     openssl \
