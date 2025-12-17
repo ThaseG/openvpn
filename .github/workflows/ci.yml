@@ -206,6 +206,8 @@ jobs:
           -v openvpn_configs:/home/openvpn/config \
           --network=openvpn_external \
           --ip=192.168.200.10 \
+          --cap-add NET_ADMIN \
+          --device /dev/net/tun:/dev/net/tun \
           openvpn-client-bookworm
     - name: Building openvpn-client-bullseye image
       run: |
@@ -221,6 +223,8 @@ jobs:
           -v openvpn_configs:/home/openvpn/config \
           --network=openvpn_external \
           --ip=192.168.200.20 \
+          --cap-add NET_ADMIN \
+          --device /dev/net/tun:/dev/net/tun \
           openvpn-client-bullseye
     - name: Building openvpn-client-jammy image
       run: |
@@ -236,6 +240,8 @@ jobs:
           -v openvpn_configs:/home/openvpn/config \
           --network=openvpn_external \
           --ip=192.168.200.40 \
+          --cap-add NET_ADMIN \
+          --device /dev/net/tun:/dev/net/tun \
           openvpn-client-jammy
     - name: Run openvpn-protected-service container
       run: |
