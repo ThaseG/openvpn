@@ -273,112 +273,112 @@ jobs:
         curl -vvv http://192.168.200.100:9234/metrics
         echo "# curl -vvv http://192.168.200.100:9234/sessions_local"
         curl -vvv http://192.168.200.100:9234/sessions_local
-  # post-clean-up:
-  #   runs-on: self-hosted
-  #   if: always()
-  #   needs: TEST-e2e
+  post-clean-up:
+    runs-on: self-hosted
+    if: always()
+    needs: TEST-e2e
 
-  #   steps:
-  #   - uses: actions/checkout@v4
-  #   - name: Stop all running Docker containers
-  #     run: |
-  #       echo "Fetching list of all running Docker containers..."
-  #       docker ps --format "{{.Names}}" | while read -r container; do
-  #           if [ -n "$container" ]; then
-  #               echo "Attempting to stop container: $container"
-  #               if docker stop "$container" 2>/dev/null; then
-  #                   echo "✓ Successfully stopped: $container"
-  #               else
-  #                   echo "✗ Failed to stop (skipping): $container"
-  #               fi
-  #           fi
-  #       done
+    steps:
+    - uses: actions/checkout@v4
+    - name: Stop all running Docker containers
+      run: |
+        echo "Fetching list of all running Docker containers..."
+        docker ps --format "{{.Names}}" | while read -r container; do
+            if [ -n "$container" ]; then
+                echo "Attempting to stop container: $container"
+                if docker stop "$container" 2>/dev/null; then
+                    echo "✓ Successfully stopped: $container"
+                else
+                    echo "✗ Failed to stop (skipping): $container"
+                fi
+            fi
+        done
         
-  #       echo ""
-  #       echo "Stop complete. Remaining running containers:"
-  #       docker ps
-  #   - name: Removing stopped containers
-  #     run: |
-  #       echo ""
-  #       echo "Removing all stopped containers..."
-  #       docker ps -a --format "{{.Names}}" | while read -r container; do
-  #           if [ -n "$container" ]; then
-  #               echo "Attempting to remove container: $container"
-  #               if docker rm "$container" 2>/dev/null; then
-  #                   echo "✓ Successfully removed: $container"
-  #               else
-  #                   echo "✗ Failed to remove (skipping): $container"
-  #               fi
-  #           fi
-  #       done
+        echo ""
+        echo "Stop complete. Remaining running containers:"
+        docker ps
+    - name: Removing stopped containers
+      run: |
+        echo ""
+        echo "Removing all stopped containers..."
+        docker ps -a --format "{{.Names}}" | while read -r container; do
+            if [ -n "$container" ]; then
+                echo "Attempting to remove container: $container"
+                if docker rm "$container" 2>/dev/null; then
+                    echo "✓ Successfully removed: $container"
+                else
+                    echo "✗ Failed to remove (skipping): $container"
+                fi
+            fi
+        done
         
-  #       echo ""
-  #       echo "Cleanup complete. Remaining containers:"
-  #       docker ps -a
-  #   - name: Remove all Docker images
-  #     run: |
-  #       echo "Fetching list of all Docker images..."
-  #       docker images --format "{{.Repository}}:{{.Tag}}" | while read -r image; do
-  #           if [ "$image" != "<none>:<none>" ]; then
-  #               echo "Attempting to remove image: $image"
-  #               if docker rmi -f "$image" 2>/dev/null; then
-  #                   echo "✓ Successfully removed: $image"
-  #               else
-  #                   echo "✗ Failed to remove (skipping): $image"
-  #               fi
-  #           fi
-  #       done
+        echo ""
+        echo "Cleanup complete. Remaining containers:"
+        docker ps -a
+    - name: Remove all Docker images
+      run: |
+        echo "Fetching list of all Docker images..."
+        docker images --format "{{.Repository}}:{{.Tag}}" | while read -r image; do
+            if [ "$image" != "<none>:<none>" ]; then
+                echo "Attempting to remove image: $image"
+                if docker rmi -f "$image" 2>/dev/null; then
+                    echo "✓ Successfully removed: $image"
+                else
+                    echo "✗ Failed to remove (skipping): $image"
+                fi
+            fi
+        done
         
-  #       # Clean up dangling images separately
-  #       echo "Removing dangling images..."
-  #       docker images --filter "dangling=true" -q | while read -r image_id; do
-  #           if [ -n "$image_id" ]; then
-  #               echo "Attempting to remove dangling image: $image_id"
-  #               docker rmi -f "$image_id" 2>/dev/null || echo "✗ Failed to remove (skipping): $image_id"
-  #           fi
-  #       done
+        # Clean up dangling images separately
+        echo "Removing dangling images..."
+        docker images --filter "dangling=true" -q | while read -r image_id; do
+            if [ -n "$image_id" ]; then
+                echo "Attempting to remove dangling image: $image_id"
+                docker rmi -f "$image_id" 2>/dev/null || echo "✗ Failed to remove (skipping): $image_id"
+            fi
+        done
         
-  #       echo ""
-  #       echo "Cleanup complete. Remaining images:"
-  #       docker images
-  #   - name: Remove all Docker networks and volumes
-  #     run: |
-  #       echo "=== Removing Docker Networks ==="
-  #       echo "Fetching list of all Docker networks..."
-  #       docker network ls --format "{{.Name}}" | while read -r network; do
-  #           # Skip default networks that cannot be removed
-  #           if [ "$network" != "bridge" ] && [ "$network" != "host" ] && [ "$network" != "none" ]; then
-  #               echo "Attempting to remove network: $network"
-  #               if docker network rm "$network" 2>/dev/null; then
-  #                   echo "✓ Successfully removed network: $network"
-  #               else
-  #                   echo "✗ Failed to remove network (skipping): $network"
-  #               fi
-  #           else
-  #               echo "⊘ Skipping default network: $network"
-  #           fi
-  #       done
+        echo ""
+        echo "Cleanup complete. Remaining images:"
+        docker images
+    - name: Remove all Docker networks and volumes
+      run: |
+        echo "=== Removing Docker Networks ==="
+        echo "Fetching list of all Docker networks..."
+        docker network ls --format "{{.Name}}" | while read -r network; do
+            # Skip default networks that cannot be removed
+            if [ "$network" != "bridge" ] && [ "$network" != "host" ] && [ "$network" != "none" ]; then
+                echo "Attempting to remove network: $network"
+                if docker network rm "$network" 2>/dev/null; then
+                    echo "✓ Successfully removed network: $network"
+                else
+                    echo "✗ Failed to remove network (skipping): $network"
+                fi
+            else
+                echo "⊘ Skipping default network: $network"
+            fi
+        done
         
-  #       echo ""
-  #       echo "Remaining networks:"
-  #       docker network ls
-  #       echo ""
-  #   - name: Remove all Docker networks and volumes
-  #     run: |
+        echo ""
+        echo "Remaining networks:"
+        docker network ls
+        echo ""
+    - name: Remove all Docker networks and volumes
+      run: |
         
-  #       echo "=== Removing Docker Volumes ==="
-  #       echo "Fetching list of all Docker volumes..."
-  #       docker volume ls --format "{{.Name}}" | while read -r volume; do
-  #           if [ -n "$volume" ]; then
-  #               echo "Attempting to remove volume: $volume"
-  #               if docker volume rm "$volume" 2>/dev/null; then
-  #                   echo "✓ Successfully removed volume: $volume"
-  #               else
-  #                   echo "✗ Failed to remove volume (skipping): $volume"
-  #               fi
-  #           fi
-  #       done
+        echo "=== Removing Docker Volumes ==="
+        echo "Fetching list of all Docker volumes..."
+        docker volume ls --format "{{.Name}}" | while read -r volume; do
+            if [ -n "$volume" ]; then
+                echo "Attempting to remove volume: $volume"
+                if docker volume rm "$volume" 2>/dev/null; then
+                    echo "✓ Successfully removed volume: $volume"
+                else
+                    echo "✗ Failed to remove volume (skipping): $volume"
+                fi
+            fi
+        done
         
-  #       echo ""
-  #       echo "Remaining volumes:"
-  #       docker volume ls
+        echo ""
+        echo "Remaining volumes:"
+        docker volume ls
