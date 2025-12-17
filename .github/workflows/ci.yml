@@ -257,6 +257,7 @@ jobs:
           --name openvpn-protected-service \
           --network=openvpn_internal \
           --ip=10.10.10.10 \
+          --cap-add=NET_ADMIN \
           openvpn-protected-service
     - name: Run ping test
       run: |
