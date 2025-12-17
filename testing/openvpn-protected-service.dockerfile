@@ -9,40 +9,32 @@ RUN apt-get update && \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Create entrypoint script inline
-RUN cat > /entrypoint.sh <<'EOF'
-#!/bin/bash
-set -e
-
-echo "Starting openvpn-protected-service..."
-
-# Display current network configuration
-echo "Current network configuration:"
-ip addr show
-echo ""
-ip route show
-echo ""
-
-# Add default route via 10.10.10.100
-echo "Setting default route via 10.10.10.100..."
-ip route del default 2>/dev/null || true
-ip route add default via 10.10.10.100
-
-echo "Updated routing table:"
-ip route show
-echo ""
-
-# Test connectivity
-echo "Testing connectivity to gateway..."
-ping -c 3 10.10.10.100 || echo "Gateway not reachable yet"
-echo ""
-
-echo "Service is ready and running..."
-
-# Keep container running
-exec tail -f /dev/null
-EOF
-
-RUN chmod +x /entrypoint.sh
+# Create entrypoint script
+RUN echo '#!/bin/bash' > /entrypoint.sh && \
+    echo 'set -e' >> /entrypoint.sh && \
+    echo '' >> /entrypoint.sh && \
+    echo 'echo "Starting openvpn-protected-service..."' >> /entrypoint.sh && \
+    echo '' >> /entrypoint.sh && \
+    echo 'echo "Current network configuration:"' >> /entrypoint.sh && \
+    echo 'ip addr show' >> /entrypoint.sh && \
+    echo 'echo ""' >> /entrypoint.sh && \
+    echo 'ip route show' >> /entrypoint.sh && \
+    echo 'echo ""' >> /entrypoint.sh && \
+    echo '' >> /entrypoint.sh && \
+    echo 'echo "Setting default route via 10.10.10.100..."' >> /entrypoint.sh && \
+    echo 'ip route del default 2>/dev/null || true' >> /entrypoint.sh && \
+    echo 'ip route add default via 10.10.10.100' >> /entrypoint.sh && \
+    echo '' >> /entrypoint.sh && \
+    echo 'echo "Updated routing table:"' >> /entrypoint.sh && \
+    echo 'ip route show' >> /entrypoint.sh && \
+    echo 'echo ""' >> /entrypoint.sh && \
+    echo '' >> /entrypoint.sh && \
+    echo 'echo "Testing connectivity to gateway..."' >> /entrypoint.sh && \
+    echo 'ping -c 3 10.10.10.100 || echo "Gateway not reachable yet"' >> /entrypoint.sh && \
+    echo 'echo ""' >> /entrypoint.sh && \
+    echo '' >> /entrypoint.sh && \
+    echo 'echo "Service is ready and running..."' >> /entrypoint.sh && \
+    echo 'exec tail -f /dev/null' >> /entrypoint.sh && \
+    chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
