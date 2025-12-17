@@ -243,6 +243,13 @@ jobs:
           --cap-add NET_ADMIN \
           --device /dev/net/tun:/dev/net/tun \
           openvpn-client-jammy
+    - name: Building openvpn-protected-service image
+      run: |
+        echo "Building openvpn-protected-service image ..."
+        docker builder build \
+          -t openvpn-protected-service \
+          -f testing/openvpn-protected-service.dockerfile \
+          .
     - name: Run openvpn-protected-service container
       run: |
         docker run \
@@ -250,7 +257,7 @@ jobs:
           --name openvpn-protected-service \
           --network=openvpn_internal \
           --ip=10.10.10.10 \
-          debian:bookworm
+          openvpn-protected-service
     - name: Run ping test
       run: |
         docker exec openvpn-client-bookworm ping 10.10.10.10 -c 10
