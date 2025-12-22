@@ -81,7 +81,7 @@ sleep 2
 sudo chown openvpn:openvpn "$LOG_DIR"/openvpn-*-status 2>/dev/null || true
 sudo chmod 644 "$LOG_DIR"/openvpn-*-status 2>/dev/null || true
 
-# Start the openvpn-exporter (likely doesn't need sudo)
+# Start the openvpn-exporter
 if [ -f /home/openvpn/exporter/openvpn-exporter ]; then
     echo "Starting OpenVPN Exporter..."
     /home/openvpn/exporter/openvpn-exporter --config.file=/home/openvpn/exporter.yml &
@@ -97,7 +97,16 @@ shutdown() {
     for pid in "${pids[@]}"; do
         if kill -0 "$pid" 2>/dev/null; then
             echo "Stopping process $pid"
-            sudo kill "$pid"
+            sudo kill -TERM "$pid" 2>/dev/null || true
+        fi
+    done
+    # Give processes time to terminate gracefully
+    sleep 2
+    # Force kill any remaining processes
+    for pid in "${pids[@]}"; do
+        if kill -0 "$pid" 2>/dev/null; then
+            echo "Force stopping process $pid"
+            sudo kill -9 "$pid" 2>/dev/null || true
         fi
     done
     exit 0
@@ -108,5 +117,14 @@ trap shutdown SIGTERM SIGINT
 
 echo "All services started. Waiting for processes..."
 
-# Wait for all background processes
-wait
+# Monitor processes and exit if any critical one dies
+while true; do
+    # Check if any process has died
+    for pid in "${pids[@]}"; do
+        if ! kill -0 "$pid" 2>/dev/null; then
+            echo "ERROR: Process $pid has died. Shutting down container."
+            shutdown
+        fi
+    done
+    sleep 5
+done

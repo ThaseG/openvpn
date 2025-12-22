@@ -129,9 +129,9 @@ COPY --from=go-builder /build/openvpn-exporter /home/openvpn/exporter/openvpn-ex
 RUN ln -sf /dev/stdout /home/openvpn/logs/openvpn.log
 
 # Copy configuration files
-COPY --chown=openvpn:openvpn server/reload-config.sh /home/openvpn/reload-config.sh
+COPY --chown=openvpn:openvpn server/entrypoint.sh /home/openvpn/entrypoint.sh
 COPY --chown=openvpn:openvpn server/exporter.yml /home/openvpn/exporter.yml
-RUN chmod +x /home/openvpn/reload-config.sh
+RUN chmod +x /home/openvpn/entrypoint.sh
 
 WORKDIR /home/openvpn
 
@@ -140,4 +140,4 @@ EXPOSE 443/tcp 443/udp 9234/tcp
 
 USER openvpn
 
-ENTRYPOINT ["/home/openvpn/reload-config.sh"]
+ENTRYPOINT ["/home/openvpn/entrypoint.sh"]
