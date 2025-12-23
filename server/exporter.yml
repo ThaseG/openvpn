@@ -1,0 +1,10 @@
+# OpenVPN Exporter Configuration
+
+# Path to OpenVPN TCP status file
+ovpn_tcp_status: /home/openvpn/logs/openvpn-tcp-status
+
+# Path to OpenVPN UDP status file
+ovpn_udp_status: /home/openvpn/logs/openvpn-udp-status
+
+# Server name to display in metrics and sessions
+server_name: openvpn-server
